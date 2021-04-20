@@ -2,6 +2,7 @@
 import pandas as pd
 
 all = pd.read_csv("../cohort.csv")
+all = all.loc[(all["Specimen_Type"] == "tumor_tissue")]
 samples = pd.read_csv("../CPTAC_ccRCC_ITH_meta_table_v1.0.tsv", sep="\t")
 
 all = all[["Patient_ID", "Slide_ID"]]
