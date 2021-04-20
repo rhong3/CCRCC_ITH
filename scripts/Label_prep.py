@@ -10,6 +10,7 @@ samples = samples[["CASE_ID", "Slide_ID", "Immune_subtype_ITH_cohort", "Source"]
 
 valid = pd.merge(all, samples, on=["Slide_ID"], how="inner")
 valid['label'] = valid["Immune_subtype_ITH_cohort"].str.split("im", n=1, expand=True)[1]
-valid = valid[["Patient_ID", "Slide_ID", "label", "Source"]]
-valid['Slide_ID'] = valid['Slide_ID'].str.split("-", expand=True)[2]
+valid['Slide_ID_tag'] = valid['Slide_ID'].str.split("-", expand=True)[2]
+valid = valid[["Patient_ID", "Slide_ID", "Slide_ID_tag", "label", "Source"]]
+
 valid.to_csv("../immune_label.csv", index=False, header=True)
