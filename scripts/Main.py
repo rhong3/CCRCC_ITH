@@ -22,29 +22,25 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dirr', type=str, default='trial', help='output directory')
 parser.add_argument('--bs', type=int, default=24, help='batch size')
 parser.add_argument('--ep', type=int, default=100, help='max epochs')
-parser.add_argument('--frac', type=float, default=0.5, help='fraction of data to use')
-parser.add_argument('--classes', type=int, default=2, help='number of classes to predict')
+parser.add_argument('--frac', type=float, default=1, help='fraction of data to use')
+parser.add_argument('--classes', type=int, default=4, help='number of classes to predict')
 parser.add_argument('--img_size', type=int, default=299, help='input tile size (default 299)')
 parser.add_argument('--dropout', type=float, default=0.5, help='drop out rate (default 0.5)')
 parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate (default 0.0001)')
-parser.add_argument('--cut', type=float, default=0.3, help='train and test+validation split (default 0.3)')
-parser.add_argument('--pdmd', type=str, default='tumor', help='feature to predict')
+parser.add_argument('--cut', type=float, default=0.4, help='train and test+validation split (default 0.4)')
+parser.add_argument('--pdmd', type=str, default='immune', help='feature to predict')
 parser.add_argument('--mode', type=str, default='train', help='train or test')
 parser.add_argument('--modeltoload', type=str, default='', help='reload trained model')
-parser.add_argument('--reference', type=str, default='../tumor_label_df.csv', help='reference label file')
-parser.add_argument('--label_column', type=str, default='Tumor_normal', help='label column name in reference file')
+parser.add_argument('--reference', type=str, default='../immune_label.csv', help='reference label file')
+parser.add_argument('--label_column', type=str, default='label', help='label column name in reference file')
 parser.add_argument('--tile_path', type=str, default='../tiles', help='directory to tiles')
 parser.add_argument('--transfer', type=bool, default=False, help='reload for transfer learning (True or False)')
-parser.add_argument('--exclude', nargs='+', type=str, default=None, help='list cancer types to exclude from this study')
+parser.add_argument('--architecture', type=str, default="p1", help='architecture to use; default panoptes1')
 
 
 opt = parser.parse_args()
 print('Input config:')
 print(opt, flush=True)
-
-# tumor reference dictionary
-tumor_dict = {'HNSCC': int(0), 'CCRCC': int(1), 'CO': int(2), 'BRCA': int(3),
-                    'LUAD': int(4), 'LSCC': int(5), 'PDA': int(6), 'UCEC': int(7), 'GBM': int(8), 'OV': int(9)}
 
 # input image dimension
 INPUT_DIM = [opt.bs, opt.img_size, opt.img_size, 3]
@@ -64,23 +60,17 @@ out_dir = "../Results/{}/out".format(opt.dirr)
 
 
 # count numbers of training and testing images
-def counters(trlist, telist, valist, cls, tumor_d):
+def counters(trlist, telist, valist, cls):
     trcc = len(trlist['label'])
     tecc = len(telist['label'])
     vacc = len(valist['label'])
     weigh = []
-    for tum in tumor_d.keys():
-        trlist_x = trlist[trlist['Tumor'] == tum]
-        valist_x = valist[valist['Tumor'] == tum]
-        telist_x = telist[telist['Tumor'] == tum]
-        wee = []
-        for i in range(cls):
-            ccct = len(trlist_x.loc[trlist_x['label'] == i])+len(valist_x.loc[valist_x['label'] == i])\
-                   + len(telist_x.loc[telist_x['label'] == i])
-            wt = np.cbrt(((trcc+tecc+vacc)/cls)/(ccct+1))
-            wee.append(wt)
-        weigh.append(wee)
-    weigh = tf.constant(np.array(weigh))
+    for i in range(cls):
+        ccct = len(trlist.loc[trlist['label'] == i])+len(valist.loc[valist['label'] == i]) + \
+               len(telist.loc[telist['label'] == i])
+        wt = ((trcc+tecc+vacc)/cls)/ccct
+        weigh.append(wt)
+    weigh = tf.constant(weigh)
     return trcc, tecc, vacc, weigh
 
 
@@ -107,7 +97,7 @@ def _bytes_feature(value):
 
 
 # loading images for dictionaries and generate tfrecords
-def loader(totlist_dir, ds, dict_t):
+def loader(totlist_dir, ds):
     if ds == 'train':
         slist = pd.read_csv(totlist_dir + '/tr_sample.csv', header=0)
     elif ds == 'validation':
@@ -120,9 +110,7 @@ def loader(totlist_dir, ds, dict_t):
     imlistb = slist['L2path'].values.tolist()
     imlistc = slist['L3path'].values.tolist()
     lblist = slist['label'].values.tolist()
-    slist['Tumor'] = slist['Tumor'].replace(dict_t)
-    tplist = slist['Tumor'].values.tolist()
-    filename = data_dir + '/' + ds + '.tfrecords'
+    filename = totlist_dir + '/' + ds + '.tfrecords'
     writer = tf.python_io.TFRecordWriter(filename)
     for i in range(len(lblist)):
         try:
@@ -131,10 +119,8 @@ def loader(totlist_dir, ds, dict_t):
             imgb = load_image(imlistb[i])
             imgc = load_image(imlistc[i])
             label = lblist[i]
-            tumor = tplist[i]
             # Create a feature
-            feature = {ds + '/label': _int64_feature(int(label)),
-                       ds + '/tumor': _int64_feature(int(tumor)),
+            feature = {ds + '/label': _int64_feature(label),
                        ds + '/imageL1': _bytes_feature(tf.compat.as_bytes(imga.tostring())),
                        ds + '/imageL2': _bytes_feature(tf.compat.as_bytes(imgb.tostring())),
                        ds + '/imageL3': _bytes_feature(tf.compat.as_bytes(imgc.tostring()))}
@@ -232,35 +218,34 @@ if __name__ == "__main__":
             va = pd.read_csv(data_dir + '/va_sample_full.csv', header=0)
         except FileNotFoundError:
             alll = Sample_prep2.big_image_sum(label_col=opt.label_column, path=opt.tile_path,
-                                              ref_file=opt.reference, pdmd=opt.pdmd, exclude=opt.exclude)
+                                              ref_file=opt.reference)
             Sample_prep2.set_sep(alll, path=data_dir, cut=opt.cut)
-            # Sample_prep2.set_sep_secondary(alll, path=data_dir, cut=opt.cut)
             tr = pd.read_csv(data_dir + '/tr_sample_full.csv', header=0)
             te = pd.read_csv(data_dir + '/te_sample_full.csv', header=0)
             va = pd.read_csv(data_dir + '/va_sample_full.csv', header=0)
         trs = tr.sample(frac=opt.frac, replace=False)
         trs.to_csv(data_dir + '/tr_sample.csv', header=True, index=False)
         tes = te.sample(frac=opt.frac, replace=False)
-        tes = tes.sort_values(by=['Tumor', 'Slide_ID'], ascending=True)
+        tes = tes.sort_values(by=['Slide_ID'], ascending=True)
         tes.to_csv(data_dir + '/te_sample.csv', header=True, index=False)
         vas = va.sample(frac=opt.frac, replace=False)
         vas.to_csv(data_dir + '/va_sample.csv', header=True, index=False)
 
     # get counts of testing, validation, and training datasets
-    trc, tec, vac, weights = counters(trs, tes, vas, opt.classes, tumor_dict)
+    trc, tec, vac, weights = counters(trs, tes, vas, opt.classes)
 
     # test or not
     if opt.mode == 'test':
         if not os.path.isfile(data_dir + '/test.tfrecords'):
-            loader(data_dir, 'test', tumor_dict)
+            loader(data_dir, 'test')
         main(trc, tec, vac, weights, testset=tes, to_reload=opt.modeltoload, test=True)
     elif opt.mode == 'train':
         if not os.path.isfile(data_dir + '/test.tfrecords'):
-            loader(data_dir, 'test', tumor_dict)
+            loader(data_dir, 'test')
         if not os.path.isfile(data_dir + '/validation.tfrecords'):
-            loader(data_dir, 'validation', tumor_dict)
+            loader(data_dir, 'validation')
         if not os.path.isfile(data_dir + '/train.tfrecords'):
-            loader(data_dir, 'train', tumor_dict)
+            loader(data_dir, 'train')
         if opt.modeltoload == '':
             main(trc, tec, vac, weights, testset=tes)
         else:

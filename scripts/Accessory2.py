@@ -21,10 +21,8 @@ from itertools import cycle
 
 # Plot ROC and PRC plots
 def ROC_PRC(outtl, pdx, path, name, fdict, dm, accur, pmd):
-    if pmd == 'stage':
-        rdd = 5
-    elif pmd == 'origin':
-        rdd = 10
+    if pmd == 'immune':
+        rdd = 4
     else:
         rdd = 2
     if rdd > 2:
@@ -198,21 +196,13 @@ def ROC_PRC(outtl, pdx, path, name, fdict, dm, accur, pmd):
 # slide level; need prediction scores, true labels, output path, and name of the files for metrics;
 # accuracy, AUROC; AUPRC.
 def slide_metrics(inter_pd, path, name, fordict, pmd):
-    inter_pd = inter_pd.drop(['Patient_ID', 'Tumor', 'L1path', 'L2path', 'L3path', 'label', 'Prediction'], axis=1)
+    inter_pd = inter_pd.drop(['Patient_ID', 'L1path', 'L2path', 'L3path', 'label', 'Prediction'], axis=1)
     inter_pd = inter_pd.groupby(['Slide_ID']).mean()    # Need to change in transfer learning
     inter_pd = inter_pd.round({'True_label': 0})
-    if pmd == 'stage':
+    if pmd == 'immune':
         inter_pd['Prediction'] = inter_pd[
-            ['stage0_score', 'stage1_score', 'stage2_score', 'stage3_score', 'stage4_score']].idxmax(axis=1)
-        redict = {'stage1_score': int(1), 'stage2_score': int(2), 'stage3_score': int(3), 'stage4_score': int(4),
-                  'stage0_score': int(0)}
-    elif pmd == 'origin':
-        inter_pd['Prediction'] = inter_pd[['HNSCC_score', 'CCRCC_score', 'CO_score', 'BRCA_score', 'LUAD_score',
-                                           'LSCC_score', 'PDA_score', 'UCEC_score', 'GBM_score',
-                                           'OV_score']].idxmax(axis=1)
-        redict = {'HNSCC_score': int(0), 'CCRCC_score': int(1), 'CO_score': int(2), 'BRCA_score': int(3),
-                  'LUAD_score': int(4), 'LSCC_score': int(5), 'PDA_score': int(6), 'UCEC_score': int(7),
-                  'GBM_score': int(8), 'OV_score': int(9)}
+            ['im1_score', 'im2_score', 'im3_score', 'im4_score']].idxmax(axis=1)
+        redict = {'im1_score': int(0), 'im2_score': int(1), 'im3_score': int(2), 'im4_score': int(3)}
     else:
         inter_pd['Prediction'] = inter_pd[['NEG_score', 'POS_score']].idxmax(axis=1)
         redict = {'NEG_score': int(0), 'POS_score': int(1)}
@@ -224,17 +214,8 @@ def slide_metrics(inter_pd, path, name, fordict, pmd):
     accu = accout.shape[0]
     accurr = round(accu/tott, 5)
     print('Slide Total Accuracy: '+str(accurr))
-    if pmd == 'stage':
-        for i in range(5):
-            accua = accout[accout.True_label == i].shape[0]
-            tota = inter_pd[inter_pd.True_label == i].shape[0]
-            try:
-                accuar = round(accua / tota, 5)
-                print('Slide {} Accuracy: '.format(fordict[i])+str(accuar))
-            except ZeroDivisionError:
-                print("No data for {}.".format(fordict[i]))
-    elif pmd == 'origin':
-        for i in range(10):
+    if pmd == 'immune':
+        for i in range(4):
             accua = accout[accout.True_label == i].shape[0]
             tota = inter_pd[inter_pd.True_label == i].shape[0]
             try:
@@ -244,13 +225,9 @@ def slide_metrics(inter_pd, path, name, fordict, pmd):
                 print("No data for {}.".format(fordict[i]))
     try:
         outtl_slide = inter_pd['True_label'].to_frame(name='True_lable')
-        if pmd == 'stage':
+        if pmd == 'immune':
             pdx_slide = inter_pd[
-                ['stage0_score', 'stage1_score', 'stage2_score', 'stage3_score', 'stage4_score']].values
-        elif pmd == 'origin':
-            pdx_slide = inter_pd[['HNSCC_score', 'CCRCC_score', 'CO_score', 'BRCA_score', 'LUAD_score',
-                                           'LSCC_score', 'PDA_score', 'UCEC_score', 'GBM_score',
-                                           'OV_score']].values
+                ['im1_score', 'im2_score', 'im3_score', 'im4_score']].values
         else:
             pdx_slide = inter_pd[['NEG_score', 'POS_score']].values
         ROC_PRC(outtl_slide, pdx_slide, path, name, fordict, 'slide', accurr, pmd)
@@ -260,31 +237,24 @@ def slide_metrics(inter_pd, path, name, fordict, pmd):
     inter_pd['True_label'] = inter_pd['True_label'].replace(fordict)
 
     raw = pd.read_csv("../Results/{}/data/{}_sample_raw.csv".format(path, name[0:2].lower()),
-                      header=0, usecols=['Slide_ID', 'Tumor', 'Patient_ID', 'path'])
+                      header=0, usecols=['Slide_ID', 'source', 'Patient_ID', 'path'])
     inter_pd = inter_pd.join(raw.set_index('Slide_ID'), on='Slide_ID', how='left')
     inter_pd.to_csv("../Results/{}/out/{}_slide.csv".format(path, name), index=True)
 
 
 # for real image prediction, just output the prediction scores as csv
 def realout(pdx, path, name, pmd):
-    if pmd == 'stage':
-        lbdict = {1: 'stage1', 2: 'stage2', 3: 'stage3', 4: 'stage4', 0: 'stage0'}
-    elif pmd == 'origin':
-        lbdict = {0: 'HNSCC', 1: 'CCRCC', 2: 'CO', 3: 'BRCA', 4: 'LUAD',
-                  5: 'LSCC', 6: 'PDA', 7: 'UCEC', 8: 'GBM', 9: 'OV'}
+    if pmd == 'immune':
+        lbdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
     else:
         lbdict = {0: 'negative', 1: pmd}
     pdx = np.asmatrix(pdx)
     prl = pdx.argmax(axis=1).astype('uint8')
     prl = pd.DataFrame(prl, columns=['Prediction'])
     prl = prl.replace(lbdict)
-    if pmd == 'stage':
-        out = pd.DataFrame(pdx[:, 0:5],
-                           columns=['stage0_score', 'stage1_score', 'stage2_score', 'stage3_score', 'stage4_score'])
-    elif pmd == 'origin':
-        out = pd.DataFrame(pdx[:, 0:10],
-                           columns=['HNSCC_score', 'CCRCC_score', 'CO_score', 'BRCA_score', 'LUAD_score', 'LSCC_score',
-                                    'PDA_score', 'UCEC_score', 'GBM_score', 'OV_score'])
+    if pmd == 'immune':
+        out = pd.DataFrame(pdx[:, 0:4],
+                           columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
     else:
         out = pd.DataFrame(pdx[:, 0:2], columns=['NEG_score', 'POS_score'])
     out.reset_index(drop=True, inplace=True)
@@ -292,40 +262,6 @@ def realout(pdx, path, name, pmd):
     out = pd.concat([out, prl], axis=1)
     out.insert(loc=0, column='Num', value=out.index)
     out.to_csv("../Results/{}/out/{}.csv".format(path, name), index=False)
-
-
-def type_metrics(path, name, pmd, fdict):
-    if name == 'Validation':
-        pass
-    else:
-        bdict = {value: key for (key, value) in fdict.items()}
-        slide = pd.read_csv("../Results/{}/out/{}_slide.csv".format(path, name), header=0)
-        tile = pd.read_csv("../Results/{}/out/{}_tile.csv".format(path, name), header=0)
-        unq = slide.Tumor.unique().tolist()
-        for tt in unq:
-            slide_sub = slide[slide['Tumor'] == tt]
-            tott = slide_sub.shape[0]
-            accout = slide_sub.loc[slide_sub['Prediction'] == slide_sub['True_label']]
-            accu = accout.shape[0]
-            accur = round(accu / tott, 5)
-            outtl = slide_sub['True_label'].replace(bdict).to_frame()
-            pdx = slide_sub.filter(regex='_score').values
-            try:
-                ROC_PRC(outtl, pdx, path, str(tt+'_'+name), fdict, 'slide', accur, pmd)
-            except ValueError:
-                print('Error: {} contains only 1 level of true label'.format(str(tt+'_'+name)))
-
-            tile_sub = tile[tile['Tumor'] == tt]
-            tott = tile_sub.shape[0]
-            accout = tile_sub.loc[tile_sub['Prediction'] == tile_sub['True_label']]
-            accu = accout.shape[0]
-            accur = round(accu / tott, 5)
-            outtl = tile_sub['True_label'].replace(bdict).to_frame()
-            pdx = tile_sub.filter(regex='_score').values
-            try:
-                ROC_PRC(outtl, pdx, path, str(tt+'_'+name), fdict, 'tile', accur, pmd)
-            except ValueError:
-                print('Error: {} contains only 1 level of true label'.format(str(tt+'_'+name)))
 
 
 # tile level; need prediction scores, true labels, output path, and name of the files for metrics; accuracy, AUROC; PRC.
@@ -336,16 +272,10 @@ def metrics(pdx, tl, path, name, pmd, ori_test=None):
     pdxt = np.asmatrix(pdx)
     prl = pdxt.argmax(axis=1).astype('uint8')
     prl = pd.DataFrame(prl, columns=['Prediction'])
-    if pmd == 'stage':
-        lbdict = {1: 'stage1', 2: 'stage2', 3: 'stage3', 4: 'stage4', 0: 'stage0'}
-        outt = pd.DataFrame(pdxt[:, 0:5],
-                            columns=['stage0_score', 'stage1_score', 'stage2_score', 'stage3_score', 'stage4_score'])
-    elif pmd == 'origin':
-        lbdict = {0: 'HNSCC', 1: 'CCRCC', 2: 'CO', 3: 'BRCA', 4: 'LUAD',
-                  5: 'LSCC', 6: 'PDA', 7: 'UCEC', 8: 'GBM', 9: 'OV'}
-        outt = pd.DataFrame(pdxt[:, 0:10],
-                           columns=['HNSCC_score', 'CCRCC_score', 'CO_score', 'BRCA_score', 'LUAD_score', 'LSCC_score',
-                                    'PDA_score', 'UCEC_score', 'GBM_score', 'OV_score'])
+    if pmd == 'immune':
+        lbdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
+        outt = pd.DataFrame(pdxt[:, 0:4],
+                            columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
     else:
         lbdict = {0: 'negative', 1: pmd}
         outt = pd.DataFrame(pdxt[:, 0:2], columns=['NEG_score', 'POS_score'])
@@ -380,17 +310,8 @@ def metrics(pdx, tl, path, name, pmd, ori_test=None):
     accu = accout.shape[0]
     accurw = round(accu/tott, 5)
     print('Tile Total Accuracy: '+str(accurw))
-    if pmd == 'stage':
-        for i in range(5):
-            accua = accout[accout.True_label == i].shape[0]
-            tota = out[out.True_label == i].shape[0]
-            try:
-                accuar = round(accua / tota, 5)
-                print('Tile {} Accuracy: '.format(lbdict[i])+str(accuar))
-            except ZeroDivisionError:
-                print("No data for {}.".format(lbdict[i]))
-    elif pmd == 'origin':
-        for i in range(10):
+    if pmd == 'immune':
+        for i in range(4):
             accua = accout[accout.True_label == i].shape[0]
             tota = out[out.True_label == i].shape[0]
             try:
@@ -402,7 +323,6 @@ def metrics(pdx, tl, path, name, pmd, ori_test=None):
         ROC_PRC(outtlt, pdxt, path, name, lbdict, 'tile', accurw, pmd)
     except ValueError:
         print('Not able to generate plots based on this set!')
-    type_metrics(path, name, pmd, lbdict)
 
 
 # format activation and weight to get heatmap
@@ -435,38 +355,18 @@ def py_map2jpg(imgmap):
 # y are labels; path is output folder, name is test/validation; rd is current batch number
 def CAM(net, w, pred, x, y, path, name, bs, pmd, rd=0):
     DIRT = "../Results/{}/out/{}_img".format(path, name)
-    if pmd == 'stage':
-        DIRA = "../Results/{}/out/{}_img/stage0".format(path, name)
-        DIRB = "../Results/{}/out/{}_img/stage1".format(path, name)
-        DIRC = "../Results/{}/out/{}_img/stage2".format(path, name)
-        DIRD = "../Results/{}/out/{}_img/stage3".format(path, name)
-        DIRE = "../Results/{}/out/{}_img/stage4".format(path, name)
-        for DIR in (DIRT, DIRA, DIRB, DIRC, DIRD, DIRE):
+    if pmd == 'immune':
+        DIRA = "../Results/{}/out/{}_img/im1".format(path, name)
+        DIRB = "../Results/{}/out/{}_img/im2".format(path, name)
+        DIRC = "../Results/{}/out/{}_img/im3".format(path, name)
+        DIRD = "../Results/{}/out/{}_img/im4".format(path, name)
+        for DIR in (DIRT, DIRA, DIRB, DIRC, DIRD):
             try:
                 os.mkdir(DIR)
             except FileExistsError:
                 pass
-        catdict = {1: 'stage1', 2: 'stage2', 3: 'stage3', 4: 'stage4', 0: 'stage0'}
-        dirdict = {1: DIRB, 2: DIRC, 3: DIRD, 4: DIRE, 0: DIRA}
-    elif pmd == 'origin':
-        DIRA = "../Results/{}/out/{}_img/HNSCC".format(path, name)
-        DIRB = "../Results/{}/out/{}_img/CCRCC".format(path, name)
-        DIRC = "../Results/{}/out/{}_img/CO".format(path, name)
-        DIRD = "../Results/{}/out/{}_img/BRCA".format(path, name)
-        DIRE = "../Results/{}/out/{}_img/LUAD".format(path, name)
-        DIRF = "../Results/{}/out/{}_img/LSCC".format(path, name)
-        DIRG = "../Results/{}/out/{}_img/PDA".format(path, name)
-        DIRH = "../Results/{}/out/{}_img/UCEC".format(path, name)
-        DIRI = "../Results/{}/out/{}_img/GBM".format(path, name)
-        DIRJ = "../Results/{}/out/{}_img/OV".format(path, name)
-        for DIR in (DIRT, DIRA, DIRB, DIRC, DIRD, DIRE, DIRF, DIRG, DIRH, DIRI, DIRJ):
-            try:
-                os.mkdir(DIR)
-            except FileExistsError:
-                pass
-        catdict = {0: 'HNSCC', 1: 'CCRCC', 2: 'CO', 3: 'BRCA', 4: 'LUAD',
-                  5: 'LSCC', 6: 'PDA', 7: 'UCEC', 8: 'GBM', 9: 'OV'}
-        dirdict = {1: DIRB, 2: DIRC, 3: DIRD, 4: DIRE, 0: DIRA, 5: DIRF, 6: DIRG, 7: DIRH, 8: DIRI, 9: DIRJ}
+        catdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
+        dirdict = {1: DIRB, 2: DIRC, 3: DIRD, 0: DIRA}
     else:
         DIRA = "../Results/{}/out/{}_img/NEG".format(path, name)
         DIRB = "../Results/{}/out/{}_img/POS".format(path, name)
@@ -594,13 +494,9 @@ def tSNE_prep(flatnet, ori_test, y, pred, path, pmd):
     prl = pd.DataFrame(prl, columns=['Prediction'])
     print(np.shape(flatnet))
     act = pd.DataFrame(np.asmatrix(flatnet))
-    if pmd == 'stage':
-        outt = pd.DataFrame(pdxt[:, 0:5],
-                            columns=['stage0_score', 'stage1_score', 'stage2_score', 'stage3_score', 'stage4_score'])
-    elif pmd == 'origin':
-        outt = pd.DataFrame(pdxt[:, 0:10],
-                           columns=['HNSCC_score', 'CCRCC_score', 'CO_score', 'BRCA_score', 'LUAD_score', 'LSCC_score',
-                                    'PDA_score', 'UCEC_score', 'GBM_score', 'OV_score'])
+    if pmd == 'immmune':
+        outt = pd.DataFrame(pdxt[:, 0:4],
+                            columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
     else:
         outt = pd.DataFrame(pdxt[:, 0:2], columns=['NEG_score', 'POS_score'])
     outtlt = pd.DataFrame(tl, columns=['True_label'])

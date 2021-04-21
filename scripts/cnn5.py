@@ -14,13 +14,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import Accessory2 as ac
-import Panoptes1
 
 
 # Define an Inception
 class INCEPTION:
     def __init__(self, input_dim, d_hyperparams=None,
-                 save_graph_def=True, meta_graph=None, transfer=False,
+                 save_graph_def=True, meta_graph=None, transfer=False, model="p1",
                  log_dir="./log", meta_dir="./meta", weights=tf.constant([1., 1., 1., 1.])):
         if d_hyperparams is None:
             d_hyperparams = {}
@@ -31,6 +30,7 @@ class INCEPTION:
         self.sesh = tf.Session()
         self.weights = weights
         self.transfer = transfer
+        self.model = model
 
         if meta_graph:  # load saved graph
             model_name = os.path.basename(meta_graph)
@@ -40,7 +40,7 @@ class INCEPTION:
 
         else:  # build graph from scratch
             self.datetime = datetime.now().strftime(r"%y%m%d_%H%M")
-            handles = self._buildGraph()
+            handles = self._buildGraph(self.model)
             for handle in handles:
                 tf.add_to_collection("cnn_to_restore", handle)
             self.sesh.run(tf.global_variables_initializer())
@@ -49,13 +49,6 @@ class INCEPTION:
         (self.xa_in, self.xb_in, self.xc_in, self.is_train, self.y_in, self.logits,
          self.net, self.w, self.pred, self.pred_loss,
          self.global_step, self.train_op, self.merged_summary, self.tumor) = handles
-
-        # vars = []
-        # for mm in ['Panoptes1/loss3/classifier/kernel:0', 'Panoptes1/loss3/classifier/bias:0',
-        #           'Panoptes1/loss2/classifier_1/kernel:0', 'Panoptes1/loss2/classifier_1/bias:0',
-        #           'Panoptes1/loss2/classifier_2/kernel:0', 'Panoptes1/loss2/classifier_2/bias:0',
-        #           'Panoptes1/loss2/classifier/kernel:0', 'Panoptes1/loss2/classifier/bias:0']:
-        #     vars.extend(tf.trainable_variables(scope=mm))
 
         if transfer:
             sample_weights = tf.gather_nd(self.weights,
@@ -92,7 +85,7 @@ class INCEPTION:
         return self.global_step.eval(session=self.sesh)
 
     # build graph; choose a structure defined in model
-    def _buildGraph(self):
+    def _buildGraph(self, model):
         # image input
         xa_in = tf.placeholder(tf.float32, name="xa")
         xa_in_reshape = tf.reshape(xa_in, [-1, self.input_dim[1], self.input_dim[2], 3])
@@ -111,11 +104,46 @@ class INCEPTION:
         classes = 20
 
         # other features input
-        logits, nett, ww = Panoptes1.Panoptes1(xa_in_reshape, xb_in_reshape, xc_in_reshape,
+        if model == 'p1':
+            import Panoptes1
+            logits, nett, ww = Panoptes1.Panoptes1(xa_in_reshape, xb_in_reshape, xc_in_reshape,
                                                    num_cls=classes,
                                                    is_train=is_train,
                                                    dropout=dropout,
                                                    scope='Panoptes1')
+            print('Using Panoptes1')
+        elif model == 'p2':
+            import Panoptes2
+            logits, nett, ww = Panoptes2.Panoptes2(xa_in_reshape, xb_in_reshape, xc_in_reshape,
+                                                   num_cls=classes,
+                                                   is_train=is_train,
+                                                   dropout=dropout,
+                                                   scope='Panoptes2')
+            print('Using Panoptes2')
+        elif model == 'p3':
+            import Panoptes3
+            logits, nett, ww = Panoptes3.Panoptes3(xa_in_reshape, xb_in_reshape, xc_in_reshape,
+                                                   num_cls=classes,
+                                                   is_train=is_train,
+                                                   dropout=dropout,
+                                                   scope='Panoptes3')
+            print('Using Panoptes3')
+        elif model == 'p4':
+            import Panoptes4
+            logits, nett, ww = Panoptes4.Panoptes4(xa_in_reshape, xb_in_reshape, xc_in_reshape,
+                                                   num_cls=classes,
+                                                   is_train=is_train,
+                                                   dropout=dropout,
+                                                   scope='Panoptes4')
+            print('Using Panoptes4')
+        else:
+            import Panoptes1
+            logits, nett, ww = Panoptes1.Panoptes1(xa_in_reshape, xb_in_reshape, xc_in_reshape,
+                                                   num_cls=classes,
+                                                   is_train=is_train,
+                                                   dropout=dropout,
+                                                   scope='Panoptes1')
+            print('Using Panoptes1')
 
         pred = tf.nn.softmax(logits, name="prediction")
 
@@ -266,7 +294,7 @@ class INCEPTION:
                     except ValueError:
                         mintrain = 0
 
-                    if loss <= mintrain and i > 29999:
+                    if loss <= mintrain and i > 9999:
                         print("round {} --> loss: ".format(i), loss)
                         temp_valid = []
                         for iii in range(20):
@@ -334,7 +362,7 @@ class INCEPTION:
                             saver.save(self.sesh, outfile, global_step=None)
                             svs = i
 
-                        if i > 99999:
+                        if i > 59999:
                             valid_mean_loss = np.mean(validation_loss[-10:-1])
                             print('Mean validation loss: {}'.format(valid_mean_loss))
                             if valid_loss > valid_mean_loss:
