@@ -48,13 +48,10 @@ class INCEPTION:
         # unpack handles for tensor ops to feed or fetch for lower layers
         (self.xa_in, self.xb_in, self.xc_in, self.is_train, self.y_in, self.logits,
          self.net, self.w, self.pred, self.pred_loss,
-         self.global_step, self.train_op, self.merged_summary, self.tumor) = handles
+         self.global_step, self.train_op, self.merged_summary) = handles
 
         if transfer:
-            sample_weights = tf.gather_nd(self.weights,
-                                          tf.stack([tf.argmax(self.tumor, axis=1),
-                                                    tf.argmax(self.y_in, axis=1)], axis=1))
-
+            sample_weights = tf.gather(self.weights, tf.argmax(self.y_in, axis=1))
             self.pred_loss = tf.losses.softmax_cross_entropy(
                 onehot_labels=self.y_in, logits=self.logits, weights=sample_weights)
             self.train_op = tf.train.AdamOptimizer(
@@ -97,8 +94,6 @@ class INCEPTION:
         dropout = self.dropout
         # label input
         y_in = tf.placeholder(dtype=tf.float32, name="y")
-        # tumor type input
-        tumor = tf.placeholder(dtype=tf.float32, name="t")
         # train or test
         is_train = tf.placeholder_with_default(True, shape=[], name="is_train")
         classes = 20
@@ -167,7 +162,7 @@ class INCEPTION:
 
         return (xa_in, xb_in, xc_in, is_train,
                 y_in, logits, nett, ww, pred, pred_loss,
-                global_step, train_op, merged_summary, tumor)
+                global_step, train_op, merged_summary)
 
     # inference using trained models
     def inference(self, X, dirr, testset=None, pmd=None, train_status=False, realtest=False):
@@ -274,8 +269,8 @@ class INCEPTION:
 
             try:
                 while True:
-                    xa, xb, xc, y, tum = sessa.run(next_element)
-                    feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y, self.tumor: tum}
+                    xa, xb, xc, y = sessa.run(next_element)
+                    feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y}
 
                     fetches = [self.merged_summary, self.logits, self.pred,
                                self.pred_loss, self.global_step, self.train_op]
@@ -297,8 +292,8 @@ class INCEPTION:
                         print("round {} --> loss: ".format(i), loss)
                         temp_valid = []
                         for iii in range(20):
-                            xa, xb, xc, y, tum = sessa.run(vanext_element)
-                            feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y, self.tumor: tum,
+                            xa, xb, xc, y= sessa.run(vanext_element)
+                            feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y,
                                          self.is_train: False}
                             fetches = [self.pred_loss, self.merged_summary]
                             valid_loss, valid_summary = self.sesh.run(fetches, feed_dict)
@@ -324,8 +319,8 @@ class INCEPTION:
                         print("round {} --> loss: ".format(i), loss)
                         temp_valid = []
                         for iii in range(100):
-                            xa, xb, xc, y, tum = sessa.run(vanext_element)
-                            feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y, self.tumor: tum,
+                            xa, xb, xc, y = sessa.run(vanext_element)
+                            feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y,
                                          self.is_train: False}
                             fetches = [self.pred_loss, self.merged_summary]
                             valid_loss, valid_summary = self.sesh.run(fetches, feed_dict)
@@ -379,8 +374,8 @@ class INCEPTION:
 
                         now = datetime.now().isoformat()[11:]
                         print("------- Final Validation begin: {} -------\n".format(now))
-                        xa, xb, xc, y, tum = sessa.run(vanext_element)
-                        feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y, self.tumor: tum,
+                        xa, xb, xc, y = sessa.run(vanext_element)
+                        feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y,
                                      self.is_train: False}
                         fetches = [self.pred_loss, self.merged_summary]
                         valid_loss, valid_summary = self.sesh.run(fetches, feed_dict)
@@ -417,8 +412,8 @@ class INCEPTION:
                 now = datetime.now().isoformat()[11:]
                 print("------- Validation begin: {} -------\n".format(now))
 
-                xa, xb, xc, y, tum = sessa.run(vanext_element)
-                feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y, self.tumor: tum,
+                xa, xb, xc, y = sessa.run(vanext_element)
+                feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc, self.y_in: y,
                              self.is_train: False}
                 fetches = [self.pred_loss, self.merged_summary, self.pred, self.net, self.w]
                 valid_loss, valid_summary, pred, net, w = self.sesh.run(fetches, feed_dict)
