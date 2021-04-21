@@ -149,8 +149,7 @@ class INCEPTION:
 
         global_step = tf.Variable(0, trainable=False)
 
-        sample_weights = tf.gather_nd(self.weights,
-                                      tf.stack([tf.argmax(tumor, axis=1), tf.argmax(y_in, axis=1)], axis=1))
+        sample_weights = tf.gather(self.weights, tf.argmax(y_in, axis=1))
 
         pred_loss = tf.losses.softmax_cross_entropy(
             onehot_labels=y_in, logits=logits, weights=sample_weights)

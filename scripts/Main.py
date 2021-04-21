@@ -182,7 +182,7 @@ def main(trc, tec, vac, weight, testset=None, to_reload=None, test=None):
             print("Not enough testing images!")
 
     else:  # train and test
-        m = cnn5.INCEPTION(INPUT_DIM, HYPERPARAMS, log_dir=LOG_DIR, weights=weight)
+        m = cnn5.INCEPTION(INPUT_DIM, HYPERPARAMS, log_dir=LOG_DIR, weights=weight, model=opt.architecture)
         print("Start a new training!")
         HE = tfreloader('train', opt.ep, opt.bs, trc, tec, vac)
         VHE = tfreloader('validation', opt.ep*100, opt.bs, trc, tec, vac)
