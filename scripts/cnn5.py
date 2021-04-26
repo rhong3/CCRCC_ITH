@@ -208,7 +208,7 @@ class INCEPTION:
                 sessa.run(itr.initializer, feed_dict={ph: file})
                 while True:
                     try:
-                        xa, xb, xc, y, _ = sessa.run(next_element)
+                        xa, xb, xc, y = sessa.run(next_element)
                         feed_dict = {self.xa_in: xa, self.xb_in: xb, self.xc_in: xc,
                                      self.is_train: train_status}
                         fetches = [self.pred, self.net, self.w]
