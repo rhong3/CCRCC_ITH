@@ -9,19 +9,23 @@
 # bins=args[5]
 # POS_score=args[6]
 
-# I START AT 9, X START AT 12; ST start I at 11, X at 14
-inlist=c('BAP1_p2', 'BAP1_p3', 'BAP1_p4')
+# X START AT 11; X at 13
+inlist=c('immune_p2', 'immune_p3', 'immune_p4')
 
 for(xx in inlist){
   input_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/For_tSNE.csv',sep='')
   output_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/tSNE_P_N.csv',sep='')
   sampled_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/tSNE_sampled.csv',sep='')
   out_fig=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/P_N.pdf',sep='')
-  start=11
+  tile_file=read.table(paste('~/documents/CCRCC_ITH/Results/',xx,'/out/Test_tile.csv',sep=''),header=T,sep=',')
+  tile_file = tile_file[,c("L1path", 'im1_score', 'im2_score',	'im3_score', 'im4_score')]
+  library(dplyr)
+  start=13
   bins=50
-  POS_score=c('POS_score')
-  TLB = 1 # ST is 2, others 1
-  MDP = 0.5 # 0.5 for binary; 1/length(POS_score)
+  # POS_score=c('POS_score')
+  POS_score=c('im1_score', 'im2_score',	'im3_score', 'im4_score')
+  TLB = 2 # ST is 2, others 1
+  MDP = 1/length(POS_score) # 0.5 for binary; 1/length(POS_score)
   
   library(Rtsne)
   ori_dat = read.table(file=input_file,header=T,sep=',')
@@ -31,6 +35,8 @@ for(xx in inlist){
   # sp_ori_dat = rbind(P, N)
   # SAMPLE 20000 FOR LEVEL 1 & 2; NO SAMPLE FOR LEVEL 3
   sp_ori_dat=ori_dat[sample(nrow(ori_dat), 20000), ]
+  sp_ori_dat=right_join(tile_file, sp_ori_dat, by="L1path")
+  sp_ori_dat=sp_ori_dat[, c(6:8, 1, 9, 10, 2:5, 13:ncol(sp_ori_dat))]
   #sp_ori_dat=ori_dat
   write.table(sp_ori_dat, file=sampled_file, row.names = F, sep=',')
   # sp_ori_dat=ori_dat
@@ -46,12 +52,15 @@ for(xx in inlist){
               y_int = as.numeric(dat$y_bin))
   
   colnames(dat)[start:(start+1)]=c('tsne1','tsne2')
+  dat$True_label = gsub("3", "im4", dat$True_label)
+  dat$True_label = gsub("2", "im3", dat$True_label)
+  dat$True_label = gsub("1", "im2", dat$True_label)
+  dat$True_label = gsub("0", "im1", dat$True_label)
   
   dat$True_label=as.factor(dat$True_label)
   dat$Slide_ID=as.factor(dat$Slide_ID)
   
   write.table(dat, file=output_file, row.names = F, sep=',')
-  
   
   ## plot the manifold with probability
   library(ggplot2)
@@ -70,9 +79,9 @@ for(xx in inlist){
     
     pblist[[i]]=ggplot(data=dat,aes_string(x='tsne1',y='tsne2'))+
       geom_point(aes(col=True_label),alpha=0.2)+
-      # scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73",
-      #                               "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))+
-      scale_color_manual(values = c("gray70", "red"))+
+      scale_color_manual(values = c("#999999", "#E69F00", "#56B4E9", "#009E73",
+                                    "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))+
+      # scale_color_manual(values = c("gray70", "red"))+
       xlim(-60,60)+
       ylim(-60,60)+
       theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),

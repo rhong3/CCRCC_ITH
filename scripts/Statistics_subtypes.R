@@ -9,65 +9,64 @@ library(boot)
 library(gmodels)
 
 
-previous=read.csv("~/Documents/CPTAC-UCEC/Results/Statistics_subtype.csv")
-existed=paste(previous$Tiles, paste(previous$Architecture, "ST", sep=''), sep='/')
-sum=read_excel('~/documents/CPTAC-UCEC/Results/Summary.xlsx', sheet = 1)
-inlist = paste(sum$Tiles, paste(sum$Architecture, "ST", sep=''), sep='/')
+previous=read.csv("~/Documents/CCRCC_ITH/Results/Statistics_subtype.csv")
+existed=paste("immune", previous$Architecture, sep='_')
+inlist = c('immune_p1', 'immune_p2', 'immune_p3', 'immune_p4')
 # Find the new trials to be calculated
 targets = inlist[which(!inlist %in% existed)]
-OUTPUT = setNames(data.frame(matrix(ncol = 158, nrow = 0)), c(  "Architecture"                             , "Tiles"                                    , "Patient_Multiclass_ROC.95.CI_lower"   ,    
-                                                                "Patient_Multiclass_ROC"                   , "Patient_Multiclass_ROC.95.CI_upper"       , "Patient_MSI_ROC.95.CI_lower"          ,    
-                                                                "Patient_MSI_ROC"                          , "Patient_MSI_ROC.95.CI_upper"              , "Patient_Endometrioid_ROC.95.CI_lower" ,    
-                                                                "Patient_Endometrioid_ROC"                 , "Patient_Endometrioid_ROC.95.CI_upper"     , "Patient_Serous.like_ROC.95.CI_lower"  ,    
-                                                                "Patient_Serous.like_ROC"                  , "Patient_Serous.like_ROC.95.CI_upper"      , "Patient_POLE_ROC.95.CI_lower"         ,    
-                                                                "Patient_POLE_ROC"                         , "Patient_POLE_ROC.95.CI_upper"             , "Patient_MSI_PRC.95.CI_lower"          ,    
-                                                                "Patient_MSI_PRC"                          , "Patient_MSI_PRC.95.CI_upper"              , "Patient_Endometrioid_PRC.95.CI_lower" ,    
-                                                                "Patient_Endometrioid_PRC"                 , "Patient_Endometrioid_PRC.95.CI_upper"     , "Patient_Serous.like_PRC.95.CI_lower"  ,    
-                                                                "Patient_Serous.like_PRC"                  , "Patient_Serous.like_PRC.95.CI_upper"      , "Patient_POLE_PRC.95.CI_lower"         ,    
-                                                                "Patient_POLE_PRC"                         , "Patient_POLE_PRC.95.CI_upper"             , "Patient_Accuracy"                     ,    
+OUTPUT = setNames(data.frame(matrix(ncol = 158, nrow = 0)), c(  "Architecture"                                                                , "Patient_Multiclass_ROC.95.CI_lower"   ,    
+                                                                "Patient_Multiclass_ROC"                   , "Patient_Multiclass_ROC.95.CI_upper"       , "Patient_im1_ROC.95.CI_lower"          ,    
+                                                                "Patient_im1_ROC"                          , "Patient_im1_ROC.95.CI_upper"              , "Patient_im2_ROC.95.CI_lower" ,    
+                                                                "Patient_im2_ROC"                 , "Patient_im2_ROC.95.CI_upper"     , "Patient_im3_ROC.95.CI_lower"  ,    
+                                                                "Patient_im3_ROC"                  , "Patient_im3_ROC.95.CI_upper"      , "Patient_im4_ROC.95.CI_lower"         ,    
+                                                                "Patient_im4_ROC"                         , "Patient_im4_ROC.95.CI_upper"             , "Patient_im1_PRC.95.CI_lower"          ,    
+                                                                "Patient_im1_PRC"                          , "Patient_im1_PRC.95.CI_upper"              , "Patient_im2_PRC.95.CI_lower" ,    
+                                                                "Patient_im2_PRC"                 , "Patient_im2_PRC.95.CI_upper"     , "Patient_im3_PRC.95.CI_lower"  ,    
+                                                                "Patient_im3_PRC"                  , "Patient_im3_PRC.95.CI_upper"      , "Patient_im4_PRC.95.CI_lower"         ,    
+                                                                "Patient_im4_PRC"                         , "Patient_im4_PRC.95.CI_upper"             , "Patient_Accuracy"                     ,    
                                                                 "Patient_Kappa"                            , "Patient_AccuracyLower"                    , "Patient_AccuracyUpper"                ,    
                                                                 "Patient_AccuracyNull"                     , "Patient_AccuracyPValue"                   , "Patient_McnemarPValue"                ,    
-                                                                "Patient_Endometrioid_Sensitivity"         , "Patient_Endometrioid_Specificity"         , "Patient_Endometrioid_Pos.Pred.Value"  ,    
-                                                                "Patient_Endometrioid_Neg.Pred.Value"      , "Patient_Endometrioid_Precision"           , "Patient_Endometrioid_Recall"          ,    
-                                                                "Patient_Endometrioid_F1"                  , "Patient_Endometrioid_Prevalence"          , "Patient_Endometrioid_Detection.Rate"  ,    
-                                                                "Patient_Endometrioid_Detection.Prevalence", "Patient_Endometrioid_Balanced.Accuracy"   , "Patient_MSI_Sensitivity"              ,    
-                                                                "Patient_MSI_Specificity"                  , "Patient_MSI_Pos.Pred.Value"               , "Patient_MSI_Neg.Pred.Value"           ,    
-                                                                "Patient_MSI_Precision"                    , "Patient_MSI_Recall"                       , "Patient_MSI_F1"                       ,    
-                                                                "Patient_MSI_Prevalence"                   , "Patient_MSI_Detection.Rate"               , "Patient_MSI_Detection.Prevalence"     ,    
-                                                                "Patient_MSI_Balanced.Accuracy"            , "Patient_POLE_Sensitivity"                 , "Patient_POLE_Specificity"             ,    
-                                                                "Patient_POLE_Pos.Pred.Value"              , "Patient_POLE_Neg.Pred.Value"              , "Patient_POLE_Precision"               ,    
-                                                                "Patient_POLE_Recall"                      , "Patient_POLE_F1"                          , "Patient_POLE_Prevalence"              ,    
-                                                                "Patient_POLE_Detection.Rate"              , "Patient_POLE_Detection.Prevalence"        , "Patient_POLE_Balanced.Accuracy"       ,    
-                                                                "Patient_Serous.like_Sensitivity"          , "Patient_Serous.like_Specificity"          , "Patient_Serous.like_Pos.Pred.Value"   ,    
-                                                                "Patient_Serous.like_Neg.Pred.Value"       , "Patient_Serous.like_Precision"            , "Patient_Serous.like_Recall"           ,    
-                                                                "Patient_Serous.like_F1"                   , "Patient_Serous.like_Prevalence"           , "Patient_Serous.like_Detection.Rate"   ,    
-                                                                "Patient_Serous.like_Detection.Prevalence" , "Patient_Serous.like_Balanced.Accuracy"    , "Tile_Multiclass_ROC.95.CI_lower"      ,    
-                                                                "Tile_Multiclass_ROC"                      , "Tile_Multiclass_ROC.95.CI_upper"          , "Tile_MSI_ROC.95.CI_lower"             ,    
-                                                                "Tile_MSI_ROC"                             , "Tile_MSI_ROC.95.CI_upper"                 , "Tile_Endometrioid_ROC.95.CI_lower"    ,    
-                                                                "Tile_Endometrioid_ROC"                    , "Tile_Endometrioid_ROC.95.CI_upper"        , "Tile_Serous.like_ROC.95.CI_lower"     ,    
-                                                                "Tile_Serous.like_ROC"                     , "Tile_Serous.like_ROC.95.CI_upper"         , "Tile_POLE_ROC.95.CI_lower"            ,    
-                                                                "Tile_POLE_ROC"                            , "Tile_POLE_ROC.95.CI_upper"                , "Tile_MSI_PRC.95.CI_lower"             ,    
-                                                                "Tile_MSI_PRC"                             , "Tile_MSI_PRC.95.CI_upper"                 , "Tile_Endometrioid_PRC.95.CI_lower"    ,    
-                                                                "Tile_Endometrioid_PRC"                   ,  "Tile_Endometrioid_PRC.95.CI_upper"       ,  "Tile_Serous.like_PRC.95.CI_lower"    ,     
-                                                                "Tile_Serous.like_PRC"                    ,  "Tile_Serous.like_PRC.95.CI_upper"        ,  "Tile_POLE_PRC.95.CI_lower"           ,     
-                                                                "Tile_POLE_PRC"                           ,  "Tile_POLE_PRC.95.CI_upper"               ,  "Tile_Accuracy"                       ,     
+                                                                "Patient_im2_Sensitivity"         , "Patient_im2_Specificity"         , "Patient_im2_Pos.Pred.Value"  ,    
+                                                                "Patient_im2_Neg.Pred.Value"      , "Patient_im2_Precision"           , "Patient_im2_Recall"          ,    
+                                                                "Patient_im2_F1"                  , "Patient_im2_Prevalence"          , "Patient_im2_Detection.Rate"  ,    
+                                                                "Patient_im2_Detection.Prevalence", "Patient_im2_Balanced.Accuracy"   , "Patient_im1_Sensitivity"              ,    
+                                                                "Patient_im1_Specificity"                  , "Patient_im1_Pos.Pred.Value"               , "Patient_im1_Neg.Pred.Value"           ,    
+                                                                "Patient_im1_Precision"                    , "Patient_im1_Recall"                       , "Patient_im1_F1"                       ,    
+                                                                "Patient_im1_Prevalence"                   , "Patient_im1_Detection.Rate"               , "Patient_im1_Detection.Prevalence"     ,    
+                                                                "Patient_im1_Balanced.Accuracy"            , "Patient_im4_Sensitivity"                 , "Patient_im4_Specificity"             ,    
+                                                                "Patient_im4_Pos.Pred.Value"              , "Patient_im4_Neg.Pred.Value"              , "Patient_im4_Precision"               ,    
+                                                                "Patient_im4_Recall"                      , "Patient_im4_F1"                          , "Patient_im4_Prevalence"              ,    
+                                                                "Patient_im4_Detection.Rate"              , "Patient_im4_Detection.Prevalence"        , "Patient_im4_Balanced.Accuracy"       ,    
+                                                                "Patient_im3_Sensitivity"          , "Patient_im3_Specificity"          , "Patient_im3_Pos.Pred.Value"   ,    
+                                                                "Patient_im3_Neg.Pred.Value"       , "Patient_im3_Precision"            , "Patient_im3_Recall"           ,    
+                                                                "Patient_im3_F1"                   , "Patient_im3_Prevalence"           , "Patient_im3_Detection.Rate"   ,    
+                                                                "Patient_im3_Detection.Prevalence" , "Patient_im3_Balanced.Accuracy"    , "Tile_Multiclass_ROC.95.CI_lower"      ,    
+                                                                "Tile_Multiclass_ROC"                      , "Tile_Multiclass_ROC.95.CI_upper"          , "Tile_im1_ROC.95.CI_lower"             ,    
+                                                                "Tile_im1_ROC"                             , "Tile_im1_ROC.95.CI_upper"                 , "Tile_im2_ROC.95.CI_lower"    ,    
+                                                                "Tile_im2_ROC"                    , "Tile_im2_ROC.95.CI_upper"        , "Tile_im3_ROC.95.CI_lower"     ,    
+                                                                "Tile_im3_ROC"                     , "Tile_im3_ROC.95.CI_upper"         , "Tile_im4_ROC.95.CI_lower"            ,    
+                                                                "Tile_im4_ROC"                            , "Tile_im4_ROC.95.CI_upper"                , "Tile_im1_PRC.95.CI_lower"             ,    
+                                                                "Tile_im1_PRC"                             , "Tile_im1_PRC.95.CI_upper"                 , "Tile_im2_PRC.95.CI_lower"    ,    
+                                                                "Tile_im2_PRC"                   ,  "Tile_im2_PRC.95.CI_upper"       ,  "Tile_im3_PRC.95.CI_lower"    ,     
+                                                                "Tile_im3_PRC"                    ,  "Tile_im3_PRC.95.CI_upper"        ,  "Tile_im4_PRC.95.CI_lower"           ,     
+                                                                "Tile_im4_PRC"                           ,  "Tile_im4_PRC.95.CI_upper"               ,  "Tile_Accuracy"                       ,     
                                                                 "Tile_Kappa"                              ,  "Tile_AccuracyLower"                      ,  "Tile_AccuracyUpper"                  ,     
                                                                 "Tile_AccuracyNull"                       ,  "Tile_AccuracyPValue"                     ,  "Tile_McnemarPValue"                  ,     
-                                                                "Tile_Endometrioid_Sensitivity"           ,  "Tile_Endometrioid_Specificity"           ,  "Tile_Endometrioid_Pos.Pred.Value"    ,     
-                                                                "Tile_Endometrioid_Neg.Pred.Value"        ,  "Tile_Endometrioid_Precision"             ,  "Tile_Endometrioid_Recall"            ,     
-                                                                "Tile_Endometrioid_F1"                    ,  "Tile_Endometrioid_Prevalence"            ,  "Tile_Endometrioid_Detection.Rate"    ,     
-                                                                "Tile_Endometrioid_Detection.Prevalence"  ,  "Tile_Endometrioid_Balanced.Accuracy"     ,  "Tile_MSI_Sensitivity"                ,     
-                                                                "Tile_MSI_Specificity"                    ,  "Tile_MSI_Pos.Pred.Value"                 ,  "Tile_MSI_Neg.Pred.Value"             ,     
-                                                                "Tile_MSI_Precision"                      ,  "Tile_MSI_Recall"                         ,  "Tile_MSI_F1"                         ,     
-                                                                "Tile_MSI_Prevalence"                     ,  "Tile_MSI_Detection.Rate"                 ,  "Tile_MSI_Detection.Prevalence"       ,     
-                                                                "Tile_MSI_Balanced.Accuracy"              ,  "Tile_POLE_Sensitivity"                   ,  "Tile_POLE_Specificity"               ,     
-                                                                "Tile_POLE_Pos.Pred.Value"                ,  "Tile_POLE_Neg.Pred.Value"                ,  "Tile_POLE_Precision"                 ,     
-                                                                "Tile_POLE_Recall"                        ,  "Tile_POLE_F1"                            ,  "Tile_POLE_Prevalence"                ,     
-                                                                "Tile_POLE_Detection.Rate"                ,  "Tile_POLE_Detection.Prevalence"          ,  "Tile_POLE_Balanced.Accuracy"         ,     
-                                                                "Tile_Serous.like_Sensitivity"            ,  "Tile_Serous.like_Specificity"            ,  "Tile_Serous.like_Pos.Pred.Value"     ,     
-                                                                "Tile_Serous.like_Neg.Pred.Value"         ,  "Tile_Serous.like_Precision"              ,  "Tile_Serous.like_Recall"             ,     
-                                                                "Tile_Serous.like_F1"                     ,  "Tile_Serous.like_Prevalence"             ,  "Tile_Serous.like_Detection.Rate"     ,     
-                                                                "Tile_Serous.like_Detection.Prevalence"   ,  "Tile_Serous.like_Balanced.Accuracy"))
+                                                                "Tile_im2_Sensitivity"           ,  "Tile_im2_Specificity"           ,  "Tile_im2_Pos.Pred.Value"    ,     
+                                                                "Tile_im2_Neg.Pred.Value"        ,  "Tile_im2_Precision"             ,  "Tile_im2_Recall"            ,     
+                                                                "Tile_im2_F1"                    ,  "Tile_im2_Prevalence"            ,  "Tile_im2_Detection.Rate"    ,     
+                                                                "Tile_im2_Detection.Prevalence"  ,  "Tile_im2_Balanced.Accuracy"     ,  "Tile_im1_Sensitivity"                ,     
+                                                                "Tile_im1_Specificity"                    ,  "Tile_im1_Pos.Pred.Value"                 ,  "Tile_im1_Neg.Pred.Value"             ,     
+                                                                "Tile_im1_Precision"                      ,  "Tile_im1_Recall"                         ,  "Tile_im1_F1"                         ,     
+                                                                "Tile_im1_Prevalence"                     ,  "Tile_im1_Detection.Rate"                 ,  "Tile_im1_Detection.Prevalence"       ,     
+                                                                "Tile_im1_Balanced.Accuracy"              ,  "Tile_im4_Sensitivity"                   ,  "Tile_im4_Specificity"               ,     
+                                                                "Tile_im4_Pos.Pred.Value"                ,  "Tile_im4_Neg.Pred.Value"                ,  "Tile_im4_Precision"                 ,     
+                                                                "Tile_im4_Recall"                        ,  "Tile_im4_F1"                            ,  "Tile_im4_Prevalence"                ,     
+                                                                "Tile_im4_Detection.Rate"                ,  "Tile_im4_Detection.Prevalence"          ,  "Tile_im4_Balanced.Accuracy"         ,     
+                                                                "Tile_im3_Sensitivity"            ,  "Tile_im3_Specificity"            ,  "Tile_im3_Pos.Pred.Value"     ,     
+                                                                "Tile_im3_Neg.Pred.Value"         ,  "Tile_im3_Precision"              ,  "Tile_im3_Recall"             ,     
+                                                                "Tile_im3_F1"                     ,  "Tile_im3_Prevalence"             ,  "Tile_im3_Detection.Rate"     ,     
+                                                                "Tile_im3_Detection.Prevalence"   ,  "Tile_im3_Balanced.Accuracy"))
 
 
 
@@ -83,11 +82,10 @@ for (i in targets){
     {
       print(i)
       folder = strsplit(i, '-')[[1]][1]  #split replicated trials
-      tiles = strsplit(folder, '/')[[1]][1]  #get NL number
-      folder_name = strsplit(folder, '/')[[1]][2]  #get folder name
-      arch = substr(folder_name, 1, 2)  #get architecture used
-      Test_slide <- read.csv(paste("~/documents/CPTAC-UCEC/Results/", i, "/out/Test_slide.csv", sep=''))
-      Test_tile <- read.csv(paste("~/documents/CPTAC-UCEC/Results/", i, "/out/Test_tile.csv", sep=''))
+      folder_name = i  #get folder name
+      arch = strsplit(i, '_')[[1]][2]  #get architecture used
+      Test_slide <- read.csv(paste("~/documents/CCRCC_ITH/Results/", i, "/out/Test_slide.csv", sep=''))
+      Test_tile <- read.csv(paste("~/documents/CCRCC_ITH/Results/", i, "/out/Test_tile.csv", sep=''))
       
       # per patient level
       answers <- factor(Test_slide$True_label)
@@ -102,14 +100,14 @@ for (i in targets){
       }
       
       # multiclass ROC
-      score = select(Test_slide, MSI_score, Endometrioid_score, Serous.like_score, POLE_score)
-      colnames(score) = c("MSI", "Endometrioid", "Serous-like", "POLE")
+      score = select(Test_slide, im1_score, im2_score, im3_score, im4_score)
+      colnames(score) = c("im1", "im2", "im3", "im4")
       roc =  multiclass.roc(answers, score)$auc
       rocls=list()
       for (q in 1:100){
         sampleddf = Test_slide[sample(nrow(Test_slide), round(nrow(Test_slide)*0.8)),]
-        score = select(sampleddf, MSI_score, Endometrioid_score, Serous.like_score, POLE_score)
-        colnames(score) = c("MSI", "Endometrioid", "Serous-like", "POLE") 
+        score = select(sampleddf, im1_score, im2_score, im3_score, im4_score)
+        colnames(score) = c("im1", "im2", "im3", "im4") 
         answers <- factor(sampleddf$True_label)
         rocls[q] = multiclass.roc(answers, score)$auc
       }
@@ -167,14 +165,14 @@ for (i in targets){
       }
       
       # multiclass ROC
-      Tscore = select(Test_tile, MSI_score, Endometrioid_score, Serous.like_score, POLE_score)
-      colnames(Tscore) = c("MSI", "Endometrioid", "Serous-like", "POLE")
+      Tscore = select(Test_tile, im1_score, im2_score, im3_score, im4_score)
+      colnames(Tscore) = c("im1", "im2", "im3", "im4")
       Troc =  multiclass.roc(answers, Tscore)$auc
       Trocls=list()
       for (q in 1:10){
         Tsampleddf = Test_tile[sample(nrow(Test_tile), round(nrow(Test_tile)*0.8)),]
-        Tscore = select(Tsampleddf, MSI_score, Endometrioid_score, Serous.like_score, POLE_score)
-        colnames(Tscore) = c("MSI", "Endometrioid", "Serous-like", "POLE") 
+        Tscore = select(Tsampleddf, im1_score, im2_score, im3_score, im4_score)
+        colnames(Tscore) = c("im1", "im2", "im3", "im4") 
         Tanswers <- factor(Tsampleddf$True_label)
         Trocls[q] = multiclass.roc(Tanswers, Tscore)$auc
       }
@@ -218,7 +216,7 @@ for (i in targets){
       colnames(Toverall) = paste('Tile', colnames(Toverall), sep='_')
       
       # Key names
-      keydf = data.frame("Architecture" = arch, "Tiles" = tiles)
+      keydf = data.frame("Architecture" = arch)
       # combine all df and reset row name
       tempdf = cbind(keydf, soverall, Toverall)
       rownames(tempdf) <- NULL
@@ -234,5 +232,5 @@ for (i in targets){
 
 # Bind old with new; sort; save
 New_OUTPUT = rbind(previous, OUTPUT)
-New_OUTPUT = New_OUTPUT[order(New_OUTPUT$Tiles, New_OUTPUT$Architecture),]
-write.csv(New_OUTPUT, file = "~/documents/CPTAC-UCEC/Results/Statistics_subtype.csv", row.names=FALSE)
+New_OUTPUT = New_OUTPUT[order(New_OUTPUT$Architecture),]
+write.csv(New_OUTPUT, file = "~/documents/CCRCC_ITH/Results/Statistics_subtype.csv", row.names=FALSE)

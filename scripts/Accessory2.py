@@ -494,7 +494,7 @@ def tSNE_prep(flatnet, ori_test, y, pred, path, pmd):
     prl = pd.DataFrame(prl, columns=['Prediction'])
     print(np.shape(flatnet))
     act = pd.DataFrame(np.asmatrix(flatnet))
-    if pmd == 'immmune':
+    if pmd == 'immune':
         outt = pd.DataFrame(pdxt[:, 0:4],
                             columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
     else:

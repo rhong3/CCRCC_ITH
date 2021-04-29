@@ -21,18 +21,10 @@ outim = sys.argv[6]
 
 # random select representative images and output the file paths
 def sample(dat, md, bins):
-    if md == 'subtype':
+    if md == 'immune':
         classes = 4
-        redict = {0: 'MSI_score', 1: 'Endometrioid_score', 2: 'Serous-like_score', 3: 'POLE_score'}
+        redict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
         cutoff = 0.35
-    elif md == 'histology':
-        redict = {0: 'Endometrioid_score', 1: 'Serous_score'}
-        classes = 2
-        cutoff = 0.6
-    elif md == 'MSIst':
-        redict = {0: 'MSI.H_score', 1: 'MSS_score'}
-        classes = 2
-        cutoff = 0.6
     else:
         redict = {0: 'NEG_score', 1: 'POS_score'}
         classes = 2
@@ -58,10 +50,10 @@ if __name__ == "__main__":
 
     for i in dirls:
         try:
-            ipdat = pd.read_csv('../Results/NL6/{}/out/{}.csv'.format(i, filename))
+            ipdat = pd.read_csv('../Results/{}/out/{}.csv'.format(i, filename))
             imdat = sample(ipdat, pdmd, bin)
-            imdat.to_csv('../Results/NL6/{}/out/tsne_selected.csv'.format(i), index=False)
-            for j in range(3):
+            imdat.to_csv('../Results/{}/out/tsne_selected.csv'.format(i), index=False)
+            for j in range(1, 4):
                 new_im = Image.new(mode='RGB', size=(size*(bin+1), size*(bin+1)), color='white')
 
                 for idx, rows in imdat.iterrows():
@@ -75,7 +67,7 @@ if __name__ == "__main__":
                     except FileNotFoundError:
                         print(impath)
                         pass
-                new_im.save(os.path.abspath('../Results/NL6/{}/out/{}_{}.jpeg'.format(i, outim, j)), "JPEG")
+                new_im.save(os.path.abspath('../Results/{}/out/{}_{}.jpeg'.format(i, outim, j)), "JPEG")
                 print('{} done'.format(i))
         except FileNotFoundError:
             print('{} passed'.format(i))
