@@ -24,9 +24,11 @@ def sample(dat, md, bins):
     if md == 'immune':
         classes = 4
         redict = {0: 'im1_score', 1: 'im2_score', 2: 'im3_score', 3: 'im4_score'}
-        cutoff = 0.35
+        revdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
+        cutoff = 0.3
     else:
         redict = {0: 'NEG_score', 1: 'POS_score'}
+        revdict = {0: 0, 1: 1}
         classes = 2
         cutoff = 0.6
     sampledls = []
@@ -35,13 +37,13 @@ def sample(dat, md, bins):
             for j in range(bins):
                 try:
                     sub = dat.loc[(dat['x_int'] == i) & (dat['y_int'] == j)
-                                    & (dat[redict[m]] > cutoff) & (dat['True_label'] == m)]
+                                    & (dat[redict[m]] > cutoff) & (dat['True_label'] == revdict[m])]
                     picked = sub.sample(1, replace=False)
                     for idx, row in picked.iterrows():
-                        sampledls.append([row['L0path'], row['L1path'], row['L2path'], row['x_int'], row['y_int']])
+                        sampledls.append([row['L1path'], row['L2path'], row['L3path'], row['x_int'], row['y_int']])
                 except ValueError:
                     pass
-    samples = pd.DataFrame(sampledls, columns=['L0impath', 'L1impath', 'L2impath', 'x_int', 'y_int'])
+    samples = pd.DataFrame(sampledls, columns=['L1impath', 'L2impath', 'L3impath', 'x_int', 'y_int'])
     return samples
 
 
