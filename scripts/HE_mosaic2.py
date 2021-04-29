@@ -23,7 +23,7 @@ outim = sys.argv[6]
 def sample(dat, md, bins):
     if md == 'immune':
         classes = 4
-        redict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
+        redict = {0: 'im1_score', 1: 'im2_score', 2: 'im3_score', 3: 'im4_score'}
         cutoff = 0.35
     else:
         redict = {0: 'NEG_score', 1: 'POS_score'}
