@@ -10,7 +10,7 @@
 # POS_score=args[6]
 
 # X START AT 11; X at 13
-inlist=c('immune_p2', 'immune_p3', 'immune_p4')
+inlist=c('immune_p1')
 
 for(xx in inlist){
   input_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/For_tSNE.csv',sep='')
