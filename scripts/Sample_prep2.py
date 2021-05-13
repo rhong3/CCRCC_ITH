@@ -68,28 +68,33 @@ def big_image_sum(label_col, path, ref_file):
 # seperate into training and testing; each type is the same separation ratio on big images
 # test and train csv files contain tiles' path.
 def set_sep(alll, path, cut=0.4):
-    trlist = []
-    telist = []
-    valist = []
+    try:
+        test = pd.read_csv(path + '/te_sample_raw.csv', index=False)
+        train = pd.read_csv(path + '/tr_sample_raw.csv', index=False)
+        validation = pd.read_csv(path + '/va_sample_raw.csv', index=False)
+    except FileNotFoundError:
+        trlist = []
+        telist = []
+        valist = []
 
-    for lb in list(alll.label.unique()):
-        sub = alll[alll['label'] == lb]
-        unq = list(sub.Slide_ID.unique())
-        np.random.shuffle(unq)
-        validation = unq[:np.max([int(len(unq) * cut / 2), 1])]
-        valist.append(sub[sub['Slide_ID'].isin(validation)])
-        test = unq[np.max([int(len(unq) * cut / 2), 1]):np.max([int(len(unq) * cut), 2])]
-        telist.append(sub[sub['Slide_ID'].isin(test)])
-        train = unq[np.max([int(len(unq) * cut), 2]):]
-        trlist.append(sub[sub['Slide_ID'].isin(train)])
+        for lb in list(alll.label.unique()):
+            sub = alll[alll['label'] == lb]
+            unq = list(sub.Slide_ID.unique())
+            np.random.shuffle(unq)
+            validation = unq[:np.max([int(len(unq) * cut / 2), 1])]
+            valist.append(sub[sub['Slide_ID'].isin(validation)])
+            test = unq[np.max([int(len(unq) * cut / 2), 1]):np.max([int(len(unq) * cut), 2])]
+            telist.append(sub[sub['Slide_ID'].isin(test)])
+            train = unq[np.max([int(len(unq) * cut), 2]):]
+            trlist.append(sub[sub['Slide_ID'].isin(train)])
 
-    test = pd.concat(telist)
-    train = pd.concat(trlist)
-    validation = pd.concat(valist)
+        test = pd.concat(telist)
+        train = pd.concat(trlist)
+        validation = pd.concat(valist)
 
-    test.to_csv(path + '/te_sample_raw.csv', header=True, index=False)
-    train.to_csv(path + '/tr_sample_raw.csv', header=True, index=False)
-    validation.to_csv(path + '/va_sample_raw.csv', header=True, index=False)
+        test.to_csv(path + '/te_sample_raw.csv', header=True, index=False)
+        train.to_csv(path + '/tr_sample_raw.csv', header=True, index=False)
+        validation.to_csv(path + '/va_sample_raw.csv', header=True, index=False)
 
     test_tiles = pd.DataFrame(columns=['Patient_ID', 'Slide_ID', 'label', 'L1path', 'L2path', 'L3path'])
     train_tiles = pd.DataFrame(columns=['Patient_ID', 'Slide_ID', 'label', 'L1path', 'L2path', 'L3path'])
