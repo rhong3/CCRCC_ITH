@@ -69,9 +69,9 @@ def big_image_sum(label_col, path, ref_file):
 # test and train csv files contain tiles' path.
 def set_sep(alll, path, cut=0.4):
     try:
-        test = pd.read_csv(path + '/te_sample_raw.csv', index=False)
-        train = pd.read_csv(path + '/tr_sample_raw.csv', index=False)
-        validation = pd.read_csv(path + '/va_sample_raw.csv', index=False)
+        test = pd.read_csv(path + '/te_sample_raw.csv', header=0)
+        train = pd.read_csv(path + '/tr_sample_raw.csv', header=0)
+        validation = pd.read_csv(path + '/va_sample_raw.csv', header=0)
     except FileNotFoundError:
         trlist = []
         telist = []
