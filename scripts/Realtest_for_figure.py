@@ -28,6 +28,7 @@ parser.add_argument('--classes', type=int, default=4, help='number of classes to
 parser.add_argument('--img_size', type=int, default=299, help='input tile size (default 299)')
 parser.add_argument('--pdmd', type=str, default='immune', help='feature to predict')
 parser.add_argument('--modeltoload', type=str, default='', help='reload trained model')
+parser.add_argument('--metadir', type=str, default='', help='reload trained model')
 parser.add_argument('--imgfile', type=str, default='', help='load the image')
 parser.add_argument('--architecture', type=str, default="p1", help='architecture to use; default panoptes1')
 
@@ -38,35 +39,19 @@ print(opt, flush=True)
 # paths to directories
 img_dir = '../images/CCRCC/'
 LOG_DIR = "../Results/{}".format(opt.dirr)
-METAGRAPH_DIR = "../Results/{}".format(opt.dirr)
+METAGRAPH_DIR = "../Results/{}".format(opt.metadir)
 data_dir = "../Results/{}/data".format(opt.dirr)
 out_dir = "../Results/{}/out".format(opt.dirr)
 
-for DIR in (LOG_DIR, METAGRAPH_DIR, data_dir, out_dir):
+for DIR in (LOG_DIR, data_dir, out_dir):
     try:
         os.mkdir(DIR)
     except FileExistsError:
         pass
 
 
-def tile_ids_in(root_dir, level=1):
-    ids = []
-    try:
-        for id in os.listdir(root_dir+'/level1'):
-            if '.png' in id:
-                ids.append([level, root_dir+'/level1/'+id])
-            else:
-                print('Skipping ID:', id)
-    except FileNotFoundError:
-        print('Ignore:', root_dir)
-    test_tiles = pd.DataFrame(ids, columns=['level', 'L0path'])
-    test_tiles = test_tiles.reset_index(drop=True)
-    test_tiles.insert(loc=0, column='Num', value=test_tiles.index)
-    return test_tiles
-
-
 # pair tiles of 10x, 5x, 2.5x of the same area
-def paired_tile_ids_in(root_dir, imgdirr):
+def paired_tile_ids_in(root_dir):
     fac = 1000
     ids = []
     for level in range(1, 4):
@@ -122,8 +107,8 @@ def _bytes_feature(value):
 
 
 # loading images for dictionaries and generate tfrecords
-def loaderX(totlist_dir, imgg):
-    slist = paired_tile_ids_in(totlist_dir, imgg)
+def loaderX(totlist_dir):
+    slist = paired_tile_ids_in(totlist_dir)
     slist.insert(loc=0, column='Num', value=slist.index)
     slist.to_csv(totlist_dir + '/te_sample.csv', header=True, index=False)
     imlista = slist['L0path'].values.tolist()
@@ -155,9 +140,6 @@ def loaderX(totlist_dir, imgg):
 
 import cnn5 as cnn
 import data_input3 as data_input
-level = None
-loader = loaderX
-cut = 4
 
 
 # load tfrecords and prepare datasets
@@ -168,7 +150,7 @@ def tfreloader(bs, cls, ct):
     return datasets
 
 
-def cutter(img, outdirr, cutt):
+def cutter(img, outdirr, cutt=4):
     # load standard image for normalization
     std = staintools.read_image("../colorstandard.png")
     std = staintools.LuminosityStandardizer.standardize(std)
@@ -196,12 +178,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
     else:
         pos_score = ["POS_score", "NEG_score"]
         pos_ls = [pdmd, 'negative']
-    # make directories if not exist
-    for DIR in (LOG_DIR, METAGRAPH_DIR, data_dir, out_dir):
-        try:
-            os.mkdir(DIR)
-        except FileExistsError:
-            pass
+
     level = 0
     ft = 2
     slide = OpenSlide("../images/"+imgfile)
@@ -219,14 +196,12 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
     lowres = slide.read_region((x, y), level+1, (int(n_x*stepsize/4), int(n_y*stepsize/4)))
     raw_img = np.array(lowres)[:, :, :3]
-    fct = ft
 
     if not os.path.isfile(data_dir + '/level1/dict.csv'):
-        cutter(imgfile, meta_cut, cut)
-
+        cutter(img_dir+imgfile, data_dir)
     if not os.path.isfile(data_dir + '/test.tfrecords'):
-        loader(data_dir, imgfile)
-    if not os.path.isfile(data_dir + '/out/Overlay.png'):
+        loaderX(data_dir)
+    if not os.path.isfile(out_dir + '/Overlay.png'):
         # input image dimension
         INPUT_DIM = [bs, 299, 299, 3]
         # hyper parameters
@@ -242,7 +217,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
         print("Loaded! Ready for test!")
         HE = tfreloader(bs, cls, None)
-        m.inference(HE, meta_cutter, realtest=True, pmd=pdmd)
+        m.inference(HE, out_dir, realtest=True, pmd=pdmd)
 
         slist = pd.read_csv(data_dir + '/te_sample.csv', header=0)
         # load dictionary of predictions on tiles
