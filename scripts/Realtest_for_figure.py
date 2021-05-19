@@ -197,7 +197,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
     lowres = slide.read_region((x, y), level+1, (int(n_x*stepsize/4), int(n_y*stepsize/4)))
     raw_img = np.array(lowres)[:, :, :3]
 
-    if not os.path.isfile(data_dir + '/level1/dict.csv'):
+    if not os.path.isfile(data_dir + '/level3/dict.csv'):
         cutter(img_dir+imgfile, data_dir)
     if not os.path.isfile(data_dir + '/test.tfrecords'):
         loaderX(data_dir)
@@ -249,21 +249,21 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         for index, row in joined_dict.iterrows():
             opt[int(row["X_pos"]), int(row["Y_pos"])] = 255
             if row['predict_index'] == 0:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 127
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 201
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 127
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 228
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 26
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 28
             elif row['predict_index'] == 1:
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 190
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 174
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 212
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 55
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 126
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 184
             elif row['predict_index'] == 2:
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 253
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 192
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 134
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 77
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 175
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 74
             elif row['predict_index'] == 3:
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 255
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 255
                 hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 255
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 153
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 51
             else:
                 pass
         # expand 5 times
