@@ -23,8 +23,7 @@ from openslide import OpenSlide
 parser = argparse.ArgumentParser()
 parser.add_argument('--dirr', type=str, default='trial', help='output directory')
 parser.add_argument('--bs', type=int, default=24, help='batch size')
-parser.add_argument('--frac', type=float, default=1, help='fraction of data to use')
-parser.add_argument('--classes', type=int, default=4, help='number of classes to predict')
+parser.add_argument('--cls', type=int, default=4, help='number of classes to predict')
 parser.add_argument('--img_size', type=int, default=299, help='input tile size (default 299)')
 parser.add_argument('--pdmd', type=str, default='immune', help='feature to predict')
 parser.add_argument('--modeltoload', type=str, default='', help='reload trained model')
@@ -139,7 +138,7 @@ def loaderX(totlist_dir):
 
 
 import cnn5 as cnn
-import data_input3 as data_input
+import data_input_fusion as data_input
 
 
 # load tfrecords and prepare datasets
@@ -166,6 +165,7 @@ def cutter(img, outdirr, cutt=4):
             numx, numy, raw, tct = Slicer.tile(image_file=img, outdir=otdir,
                                                                      level=level, std_img=std, ft=tff)
         except Exception as e:
+            print(e)
             print('Error!')
             pass
 
@@ -207,9 +207,9 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         # hyper parameters
         HYPERPARAMS = {
             "batch_size": bs,
-            "dropout": 0.3,
+            "dropout": 0.5,
             "learning_rate": 1E-4,
-            "classes": 2,
+            "classes": cls,
             "sup": False
         }
         m = cnn.INCEPTION(INPUT_DIM, HYPERPARAMS, meta_graph=modeltoload, log_dir=LOG_DIR, meta_dir=METAGRAPH_DIR,
