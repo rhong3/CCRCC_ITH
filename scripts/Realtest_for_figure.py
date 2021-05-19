@@ -181,7 +181,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
     level = 0
     ft = 2
-    slide = OpenSlide("../images/"+imgfile)
+    slide = OpenSlide(img_dir+imgfile)
 
     bounds_width = slide.level_dimensions[level][0]
     bounds_height = slide.level_dimensions[level][1]
