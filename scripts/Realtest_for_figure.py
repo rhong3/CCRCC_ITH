@@ -156,7 +156,7 @@ def cutter(img, outdirr, cutt=4):
     for m in range(1, cutt):
         level = int(m / 2)
         tff = int(m % 2 + 1)
-        otdir = "../Results/{}/level{}".format(outdirr, str(m))
+        otdir = "{}/level{}".format(outdirr, str(m))
         try:
             os.mkdir(otdir)
         except(FileExistsError):
@@ -170,7 +170,7 @@ def cutter(img, outdirr, cutt=4):
             pass
 
 
-def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LOG_DIR, METAGRAPH_DIR):
+def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt):
     start_time = time.time()
     if pdmd == 'immune':
         pos_score = ['im1_score', 'im2_score', 'im3_score', 'im4_score']
@@ -201,7 +201,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         cutter(img_dir+imgfile, data_dir)
     if not os.path.isfile(data_dir + '/test.tfrecords'):
         loaderX(data_dir)
-    if not os.path.isfile(out_dir + '/Overlay.png'):
+    if not os.path.isfile(out_dir + '/Test.csv'):
         # input image dimension
         INPUT_DIM = [bs, 299, 299, 3]
         # hyper parameters
@@ -217,8 +217,8 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
         print("Loaded! Ready for test!")
         HE = tfreloader(bs, cls, None)
-        m.inference(HE, out_dir, realtest=True, pmd=pdmd)
-
+        m.inference(HE, opt.dirr, realtest=True, pmd=pdmd)
+    if not os.path.isfile( out_dir + '/Overlay.png'):
         slist = pd.read_csv(data_dir + '/te_sample.csv', header=0)
         # load dictionary of predictions on tiles
         teresult = pd.read_csv(out_dir+'/Test.csv', header=0)
@@ -228,7 +228,6 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         tile_dict = pd.read_csv(data_dir+'/level1/dict.csv', header=0)
         tile_dict = tile_dict.rename(index=str, columns={"Loc": "L0path"})
         joined_dict = pd.merge(joined, tile_dict, how='inner', on=['L0path'])
-
         logits = joined_dict[pos_score]
         prd_ls = np.asmatrix(logits).argmax(axis=1).astype('uint8')
         prd = int(np.mean(prd_ls))
@@ -308,7 +307,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
 if __name__ == "__main__":
     main(opt.imgfile, opt.bs, opt.cls, opt.modeltoload, opt.pdmd, opt.architecture, img_dir,
-         data_dir, out_dir, LOG_DIR, METAGRAPH_DIR)
+         data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt)
 
 
 
