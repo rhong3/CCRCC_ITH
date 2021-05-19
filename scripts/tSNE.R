@@ -10,7 +10,7 @@
 # POS_score=args[6]
 
 # X START AT 11; X at 13
-inlist=c('immune_p1')
+inlist=c('immune_p2', 'immune_p4')
 
 for(xx in inlist){
   input_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/For_tSNE.csv',sep='')
@@ -35,8 +35,6 @@ for(xx in inlist){
   # sp_ori_dat = rbind(P, N)
   # SAMPLE 20000 FOR LEVEL 1 & 2; NO SAMPLE FOR LEVEL 3
   sp_ori_dat=ori_dat[sample(nrow(ori_dat), 20000), ]
-  sp_ori_dat=right_join(tile_file, sp_ori_dat, by="L1path")
-  sp_ori_dat=sp_ori_dat[, c(6:8, 1, 9, 10, 2:5, 13:ncol(sp_ori_dat))]
   #sp_ori_dat=ori_dat
   write.table(sp_ori_dat, file=sampled_file, row.names = F, sep=',')
   # sp_ori_dat=ori_dat
