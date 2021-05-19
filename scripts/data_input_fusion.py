@@ -53,7 +53,7 @@ class DataSet(object):
             # Defaults are not specified since both keys are required.
             features={self._mode + '/imageL1': tf.FixedLenFeature([], tf.string),
                       self._mode + '/imageL2': tf.FixedLenFeature([], tf.string),
-                      self._mode + '/imageL3': tf.FixedLenFeature([], tf.string),})
+                      self._mode + '/imageL3': tf.FixedLenFeature([], tf.string)})
 
         imagea = tf.decode_raw(features[self._mode + '/imageL1'], tf.float32)
         imagea = tf.reshape(imagea, [-1, 299, 299, 3])

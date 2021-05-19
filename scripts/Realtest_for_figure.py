@@ -122,9 +122,9 @@ def loaderX(totlist_dir):
             imgb = load_image(imlistb[i])
             imgc = load_image(imlistc[i])
             # Create a feature
-            feature = {'test/imageL0': _bytes_feature(tf.compat.as_bytes(imga.tostring())),
-                       'test/imageL1': _bytes_feature(tf.compat.as_bytes(imgb.tostring())),
-                       'test/imageL2': _bytes_feature(tf.compat.as_bytes(imgc.tostring()))}
+            feature = {'test/imageL1': _bytes_feature(tf.compat.as_bytes(imga.tostring())),
+                       'test/imageL2': _bytes_feature(tf.compat.as_bytes(imgb.tostring())),
+                       'test/imageL3': _bytes_feature(tf.compat.as_bytes(imgc.tostring()))}
             # Create an example protocol buffer
             example = tf.train.Example(features=tf.train.Features(feature=feature))
 
