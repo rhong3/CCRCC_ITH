@@ -204,7 +204,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
     if not os.path.isfile(out_dir + '/'+md+'_Overlay.png'):
         slist = pd.read_csv(data_dir + '/te_sample.csv', header=0)
         # load dictionary of predictions on tiles
-        teresult = pd.read_csv(out_dir+'/Test.csv', header=0)
+        teresult = pd.read_csv(out_dir+'/'+md+'_Test.csv', header=0)
         # join 2 dictionaries
         joined = pd.merge(slist, teresult, how='inner', on=['Num'])
         joined = joined.drop(columns=['Num'])
