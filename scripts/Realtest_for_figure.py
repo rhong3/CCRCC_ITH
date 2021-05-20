@@ -316,5 +316,3 @@ if __name__ == "__main__":
              data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt)
 
 
-
-
