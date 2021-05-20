@@ -32,23 +32,6 @@ parser.add_argument('--imgfile', type=str, default='', help='load the image')
 parser.add_argument('--architecture', type=str, default="p1", help='architecture to use; default panoptes1')
 
 
-opt = parser.parse_args()
-print('Input config:')
-print(opt, flush=True)
-# paths to directories
-img_dir = '../images/CCRCC/'
-LOG_DIR = "../Results/{}".format(opt.dirr)
-METAGRAPH_DIR = "../Results/{}".format(opt.metadir)
-data_dir = "../Results/{}/data".format(opt.dirr)
-out_dir = "../Results/{}/out".format(opt.dirr)
-
-for DIR in (LOG_DIR, data_dir, out_dir):
-    try:
-        os.mkdir(DIR)
-    except FileExistsError:
-        pass
-
-
 # pair tiles of 10x, 5x, 2.5x of the same area
 def paired_tile_ids_in(root_dir):
     fac = 1000
@@ -218,7 +201,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         print("Loaded! Ready for test!")
         HE = tfreloader(bs, cls, None)
         m.inference(HE, opt.dirr, realtest=True, pmd=pdmd)
-    if not os.path.isfile( out_dir + '/Overlay.png'):
+    if not os.path.isfile(out_dir + '/'+md+'_Overlay.png'):
         slist = pd.read_csv(data_dir + '/te_sample.csv', header=0)
         # load dictionary of predictions on tiles
         teresult = pd.read_csv(out_dir+'/Test.csv', header=0)
@@ -236,7 +219,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
         joined_dict['predict_index'] = prd_ls
         # save joined dictionary
-        joined_dict.to_csv(out_dir + '/finaldict.csv', index=False)
+        joined_dict.to_csv(out_dir + '/'+md+'_finaldict.csv', index=False)
 
         # output heat map of pos and neg.
         # initialize a graph and for each RGB channel
@@ -293,11 +276,11 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         hm_G = hm_G.repeat(50, axis=0).repeat(50, axis=1)
         hm_B = hm_B.repeat(50, axis=0).repeat(50, axis=1)
         hm = np.dstack([hm_B, hm_G, hm_R])
-        cv2.imwrite(out_dir + '/HM.png', hm)
+        cv2.imwrite(out_dir + '/'+md+'_HM.png', hm)
 
         # superimpose heatmap on scaled original image
         overlay = ori_img * 0.5 + hm * 0.5
-        cv2.imwrite(out_dir + '/Overlay.png', overlay)
+        cv2.imwrite(out_dir + '/'+md+'_Overlay.png', overlay)
 
     # # Time measure tool
     # start_time = time.time()
@@ -306,8 +289,31 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
 
 if __name__ == "__main__":
-    main(opt.imgfile, opt.bs, opt.cls, opt.modeltoload, opt.pdmd, opt.architecture, img_dir,
-         data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt)
+    opt = parser.parse_args()
+    print('Input config:')
+    print(opt, flush=True)
+    imglist = ['C3L-00606-21', 'C3L-00606-22', 'C3L-00606-23', 'C3L-01287-21', 'C3L-01287-22', 'C3L-01287-23',
+               'C3N-00148-21', 'C3N-00148-22', 'C3N-00148-23', 'C3N-00148-24', 'C3N-00149-22', 'C3N-00149-23',
+               'C3N-00149-24']
+
+    for img in imglist:
+        print(img)
+        imgfile = img+'.svs'
+        # paths to directories
+        img_dir = '../images/CCRCC/'
+        LOG_DIR = "../Results/{}".format(img)
+        METAGRAPH_DIR = "../Results/{}".format(opt.metadir)
+        data_dir = "../Results/{}/data".format(img)
+        out_dir = "../Results/{}/out".format(img)
+
+        for DIR in (LOG_DIR, data_dir, out_dir):
+            try:
+                os.mkdir(DIR)
+            except FileExistsError:
+                pass
+
+        main(imgfile, opt.bs, opt.cls, opt.modeltoload, opt.pdmd, opt.architecture, img_dir,
+             data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt)
 
 
 
