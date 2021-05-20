@@ -289,31 +289,26 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
 
 if __name__ == "__main__":
-    imglist = ['C3L-00606-21', 'C3L-00606-22', 'C3L-00606-23', 'C3L-01287-21', 'C3L-01287-22', 'C3L-01287-23',
-               'C3N-00148-21', 'C3N-00148-22', 'C3N-00148-23', 'C3N-00148-24', 'C3N-00149-22', 'C3N-00149-23',
-               'C3N-00149-24']
+    opt = parser.parse_args()
+    print('Input config:')
+    print(opt, flush=True)
+    print(opt.imgfile)
+    imgfile = opt.imgfile+'.svs'
+    # paths to directories
+    img_dir = '../images/CCRCC/'
+    LOG_DIR = "../Results/{}".format(opt.imgfile)
+    METAGRAPH_DIR = "../Results/{}".format(opt.metadir)
+    data_dir = "../Results/{}/data".format(opt.imgfile)
+    out_dir = "../Results/{}/out".format(opt.imgfile)
 
-    for img in imglist:
-        opt = parser.parse_args()
-        print('Input config:')
-        print(opt, flush=True)
-        print(img)
-        imgfile = img+'.svs'
-        # paths to directories
-        img_dir = '../images/CCRCC/'
-        LOG_DIR = "../Results/{}".format(img)
-        METAGRAPH_DIR = "../Results/{}".format(opt.metadir)
-        data_dir = "../Results/{}/data".format(img)
-        out_dir = "../Results/{}/out".format(img)
+    for DIR in (LOG_DIR, data_dir, out_dir):
+        try:
+            os.mkdir(DIR)
+        except FileExistsError:
+            pass
 
-        for DIR in (LOG_DIR, data_dir, out_dir):
-            try:
-                os.mkdir(DIR)
-            except FileExistsError:
-                pass
-
-        main(imgfile, opt.bs, opt.cls, opt.modeltoload, opt.pdmd, opt.architecture, img_dir,
-             data_dir, out_dir, LOG_DIR, METAGRAPH_DIR)
+    main(imgfile, opt.bs, opt.cls, opt.modeltoload, opt.pdmd, opt.architecture, img_dir,
+         data_dir, out_dir, LOG_DIR, METAGRAPH_DIR)
 
 
 
