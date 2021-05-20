@@ -165,7 +165,7 @@ class INCEPTION:
                 global_step, train_op, merged_summary)
 
     # inference using trained models
-    def inference(self, X, dirr, testset=None, pmd=None, train_status=False, realtest=False):
+    def inference(self, X, dirr, testset=None, pmd=None, train_status=False, realtest=False, prefix='Test'):
         now = datetime.now().isoformat()[11:]
         print("------- Testing begin: {} -------\n".format(now))
         rd = 0
@@ -199,7 +199,7 @@ class INCEPTION:
                             pdx = np.concatenate((pdx, pred), axis=0)
                         rd += 1
                     except tf.errors.OutOfRangeError:
-                        ac.realout(pdx, dirr, 'Test', pmd)
+                        ac.realout(pdx, dirr, prefix, pmd)
                         break
         else:
             itr, file, ph = X.data(train=False)

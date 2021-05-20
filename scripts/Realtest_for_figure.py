@@ -22,7 +22,7 @@ from openslide import OpenSlide
 # input
 parser = argparse.ArgumentParser()
 parser.add_argument('--dirr', type=str, default='trial', help='output directory')
-parser.add_argument('--bs', type=int, default=24, help='batch size')
+parser.add_argument('--bs', type=int, default=12, help='batch size')
 parser.add_argument('--cls', type=int, default=4, help='number of classes to predict')
 parser.add_argument('--img_size', type=int, default=299, help='input tile size (default 299)')
 parser.add_argument('--pdmd', type=str, default='immune', help='feature to predict')
@@ -153,7 +153,7 @@ def cutter(img, outdirr, cutt=4):
             pass
 
 
-def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt):
+def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LOG_DIR, METAGRAPH_DIR):
     start_time = time.time()
     if pdmd == 'immune':
         pos_score = ['im1_score', 'im2_score', 'im3_score', 'im4_score']
@@ -184,7 +184,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         cutter(img_dir+imgfile, data_dir)
     if not os.path.isfile(data_dir + '/test.tfrecords'):
         loaderX(data_dir)
-    if not os.path.isfile(out_dir + '/Test.csv'):
+    if not os.path.isfile(out_dir + '/'+md+'_Test.csv'):
         # input image dimension
         INPUT_DIM = [bs, 299, 299, 3]
         # hyper parameters
@@ -200,7 +200,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
         print("Loaded! Ready for test!")
         HE = tfreloader(bs, cls, None)
-        m.inference(HE, opt.dirr, realtest=True, pmd=pdmd)
+        m.inference(HE, str(imgfile.split('.')[0]), realtest=True, pmd=pdmd, prefix=md+'_Test')
     if not os.path.isfile(out_dir + '/'+md+'_Overlay.png'):
         slist = pd.read_csv(data_dir + '/te_sample.csv', header=0)
         # load dictionary of predictions on tiles
@@ -289,14 +289,14 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
 
 
 if __name__ == "__main__":
-    opt = parser.parse_args()
-    print('Input config:')
-    print(opt, flush=True)
     imglist = ['C3L-00606-21', 'C3L-00606-22', 'C3L-00606-23', 'C3L-01287-21', 'C3L-01287-22', 'C3L-01287-23',
                'C3N-00148-21', 'C3N-00148-22', 'C3N-00148-23', 'C3N-00148-24', 'C3N-00149-22', 'C3N-00149-23',
                'C3N-00149-24']
 
     for img in imglist:
+        opt = parser.parse_args()
+        print('Input config:')
+        print(opt, flush=True)
         print(img)
         imgfile = img+'.svs'
         # paths to directories
@@ -313,7 +313,7 @@ if __name__ == "__main__":
                 pass
 
         main(imgfile, opt.bs, opt.cls, opt.modeltoload, opt.pdmd, opt.architecture, img_dir,
-             data_dir, out_dir, LOG_DIR, METAGRAPH_DIR, opt)
+             data_dir, out_dir, LOG_DIR, METAGRAPH_DIR)
 
 
 
