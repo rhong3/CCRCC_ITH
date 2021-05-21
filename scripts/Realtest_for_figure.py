@@ -154,7 +154,7 @@ def cutter(img, outdirr, cutt=4):
 
 
 def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LOG_DIR, METAGRAPH_DIR):
-    start_time = time.time()
+
     if pdmd == 'immune':
         pos_score = ['im1_score', 'im2_score', 'im3_score', 'im4_score']
         pos_ls = ['im1', 'im2', 'im3', 'im4']
@@ -281,11 +281,6 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         # superimpose heatmap on scaled original image
         overlay = ori_img * 0.5 + hm * 0.5
         cv2.imwrite(out_dir + '/'+md+'_Overlay.png', overlay)
-
-    # # Time measure tool
-    # start_time = time.time()
-    # print("--- %s seconds ---" % (time.time() - start_time))
-    # print("--- %s seconds ---" % (time.time() - start_time))
 
 
 if __name__ == "__main__":
