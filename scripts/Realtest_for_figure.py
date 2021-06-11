@@ -3,6 +3,8 @@ load a trained model and apply it
 
 Created on 12/16/2019
 
+Modified on 05/21/2021
+
 @author: RH
 """
 import argparse
