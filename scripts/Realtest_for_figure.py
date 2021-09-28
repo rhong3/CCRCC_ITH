@@ -233,25 +233,29 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         # Positive is labeled red in output heat map
         for index, row in joined_dict.iterrows():
             opt[int(row["X_pos"]), int(row["Y_pos"])] = 255
+            # Red
             if row['predict_index'] == 0:
                 hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 228
                 hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 26
                 hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 28
+            # Blue
             elif row['predict_index'] == 1:
                 hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 55
                 hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 126
                 hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 184
+            # Green
             elif row['predict_index'] == 2:
                 hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 77
                 hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 175
                 hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 74
+            # Yellow
             elif row['predict_index'] == 3:
                 hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 255
                 hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 255
                 hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 51
             else:
                 pass
-        # expand 5 times
+        # expand 50 times
         opt = opt.repeat(50, axis=0).repeat(50, axis=1)
 
         # small-scaled original image
