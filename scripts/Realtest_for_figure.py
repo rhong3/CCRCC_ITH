@@ -233,26 +233,22 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         # Positive is labeled red in output heat map
         for index, row in joined_dict.iterrows():
             opt[int(row["X_pos"]), int(row["Y_pos"])] = 255
-            # Red
             if row['predict_index'] == 0:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 228
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 26
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 28
-            # Blue
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 142
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 24
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 62
             elif row['predict_index'] == 1:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 55
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 126
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 184
-            # Green
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 214
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 98
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 39
             elif row['predict_index'] == 2:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 77
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 175
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 74
-            # Yellow
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 245
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 200
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 112
             elif row['predict_index'] == 3:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 255
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 255
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 51
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 148
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 159
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 57
             else:
                 pass
         # expand 50 times
