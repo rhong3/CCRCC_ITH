@@ -23,6 +23,8 @@ from itertools import cycle
 def ROC_PRC(outtl, pdx, path, name, fdict, dm, accur, pmd):
     if pmd == 'immune':
         rdd = 4
+    elif pmd == 'methylation':
+        rdd = 3
     else:
         rdd = 2
     if rdd > 2:
@@ -203,6 +205,10 @@ def slide_metrics(inter_pd, path, name, fordict, pmd):
         inter_pd['Prediction'] = inter_pd[
             ['im1_score', 'im2_score', 'im3_score', 'im4_score']].idxmax(axis=1)
         redict = {'im1_score': int(0), 'im2_score': int(1), 'im3_score': int(2), 'im4_score': int(3)}
+    elif pmd == 'methylation':
+        inter_pd['Prediction'] = inter_pd[
+            ['me1_score', 'me2_score', 'me3_score']].idxmax(axis=1)
+        redict = {'me1_score': int(0), 'me2_score': int(1), 'me3_score': int(2)}
     else:
         inter_pd['Prediction'] = inter_pd[['NEG_score', 'POS_score']].idxmax(axis=1)
         redict = {'NEG_score': int(0), 'POS_score': int(1)}
@@ -223,9 +229,21 @@ def slide_metrics(inter_pd, path, name, fordict, pmd):
                 print('Slide {} Accuracy: '.format(fordict[i])+str(accuar))
             except ZeroDivisionError:
                 print("No data for {}.".format(fordict[i]))
+    elif pmd == 'methylation':
+        for i in range(3):
+            accua = accout[accout.True_label == i].shape[0]
+            tota = inter_pd[inter_pd.True_label == i].shape[0]
+            try:
+                accuar = round(accua / tota, 5)
+                print('Slide {} Accuracy: '.format(fordict[i])+str(accuar))
+            except ZeroDivisionError:
+                print("No data for {}.".format(fordict[i]))
     try:
         outtl_slide = inter_pd['True_label'].to_frame(name='True_lable')
-        if pmd == 'immune':
+        if pmd == 'methylation':
+            pdx_slide = inter_pd[
+                ['me1_score', 'me2_score', 'me3_score']].values
+        elif pmd == 'immune':
             pdx_slide = inter_pd[
                 ['im1_score', 'im2_score', 'im3_score', 'im4_score']].values
         else:
@@ -246,6 +264,8 @@ def slide_metrics(inter_pd, path, name, fordict, pmd):
 def realout(pdx, path, name, pmd):
     if pmd == 'immune':
         lbdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
+    elif pmd == 'methylation':
+        lbdict = {0: 'me1', 1: 'me2', 2: 'me3'}
     else:
         lbdict = {0: 'negative', 1: pmd}
     pdx = np.asmatrix(pdx)
@@ -255,6 +275,9 @@ def realout(pdx, path, name, pmd):
     if pmd == 'immune':
         out = pd.DataFrame(pdx[:, 0:4],
                            columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
+    elif pmd == 'methylation':
+        out = pd.DataFrame(pdx[:, 0:3],
+                           columns=['me1_score', 'me2_score', 'me3_score'])
     else:
         out = pd.DataFrame(pdx[:, 0:2], columns=['NEG_score', 'POS_score'])
     out.reset_index(drop=True, inplace=True)
@@ -276,6 +299,10 @@ def metrics(pdx, tl, path, name, pmd, ori_test=None):
         lbdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
         outt = pd.DataFrame(pdxt[:, 0:4],
                             columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
+    elif pmd == 'methylation':
+        lbdict = {0: 'me1', 1: 'me2', 2: 'me3'}
+        outt = pd.DataFrame(pdxt[:, 0:3],
+                            columns=['me1_score', 'me2_score', 'me3_score'])
     else:
         lbdict = {0: 'negative', 1: pmd}
         outt = pd.DataFrame(pdxt[:, 0:2], columns=['NEG_score', 'POS_score'])
@@ -312,6 +339,15 @@ def metrics(pdx, tl, path, name, pmd, ori_test=None):
     print('Tile Total Accuracy: '+str(accurw))
     if pmd == 'immune':
         for i in range(4):
+            accua = accout[accout.True_label == i].shape[0]
+            tota = out[out.True_label == i].shape[0]
+            try:
+                accuar = round(accua / tota, 5)
+                print('Tile {} Accuracy: '.format(lbdict[i])+str(accuar))
+            except ZeroDivisionError:
+                print("No data for {}.".format(lbdict[i]))
+    if pmd == 'methylation':
+        for i in range(3):
             accua = accout[accout.True_label == i].shape[0]
             tota = out[out.True_label == i].shape[0]
             try:
@@ -497,6 +533,9 @@ def tSNE_prep(flatnet, ori_test, y, pred, path, pmd):
     if pmd == 'immune':
         outt = pd.DataFrame(pdxt[:, 0:4],
                             columns=['im1_score', 'im2_score', 'im3_score', 'im4_score'])
+    elif pmd == 'methylation':
+        outt = pd.DataFrame(pdxt[:, 0:3],
+                            columns=['me1_score', 'me2_score', 'me3_score'])
     else:
         outt = pd.DataFrame(pdxt[:, 0:2], columns=['NEG_score', 'POS_score'])
     outtlt = pd.DataFrame(tl, columns=['True_label'])
