@@ -10,7 +10,7 @@
 # POS_score=args[6]
 
 # X START AT 11; X at 13
-inlist=c('immune_p3')
+inlist=c('met_p1', 'met_p2', 'met_p3', 'met_p4')
 
 for(xx in inlist){
   input_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/For_tSNE.csv',sep='')
@@ -18,12 +18,12 @@ for(xx in inlist){
   sampled_file=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/tSNE_sampled.csv',sep='')
   out_fig=paste('~/documents/CCRCC_ITH/Results/',xx,'/out/P_N.pdf',sep='')
   tile_file=read.table(paste('~/documents/CCRCC_ITH/Results/',xx,'/out/Test_tile.csv',sep=''),header=T,sep=',')
-  tile_file = tile_file[,c("L1path", 'im1_score', 'im2_score',	'im3_score', 'im4_score')]
+  tile_file = tile_file[,c("L1path", 'me1_score', 'me2_score',	'me3_score')]
   library(dplyr)
-  start=13
+  start=12
   bins=50
   # POS_score=c('POS_score')
-  POS_score=c('im1_score', 'im2_score',	'im3_score', 'im4_score')
+  POS_score=c('me1_score', 'me2_score',	'me3_score')
   TLB = 2 # ST is 2, others 1
   MDP = 1/length(POS_score) # 0.5 for binary; 1/length(POS_score)
   
@@ -50,10 +50,9 @@ for(xx in inlist){
               y_int = as.numeric(dat$y_bin))
   
   colnames(dat)[start:(start+1)]=c('tsne1','tsne2')
-  dat$True_label = gsub("3", "im4", dat$True_label)
-  dat$True_label = gsub("2", "im3", dat$True_label)
-  dat$True_label = gsub("1", "im2", dat$True_label)
-  dat$True_label = gsub("0", "im1", dat$True_label)
+  dat$True_label = gsub("2", "me3", dat$True_label)
+  dat$True_label = gsub("1", "me2", dat$True_label)
+  dat$True_label = gsub("0", "me1", dat$True_label)
   
   dat$True_label=as.factor(dat$True_label)
   dat$Slide_ID=as.factor(dat$Slide_ID)
