@@ -26,6 +26,11 @@ def sample(dat, md, bins):
         redict = {0: 'im1_score', 1: 'im2_score', 2: 'im3_score', 3: 'im4_score'}
         revdict = {0: 'im1', 1: 'im2', 2: 'im3', 3: 'im4'}
         cutoff = 0.3
+    elif md == 'methylation':
+        classes = 3
+        redict = {0: 'me1_score', 1: 'me2_score', 2: 'me3_score'}
+        revdict = {0: 'me1', 1: 'me2', 2: 'me3'}
+        cutoff = 0.4
     else:
         redict = {0: 'NEG_score', 1: 'POS_score'}
         revdict = {0: 0, 1: 1}
