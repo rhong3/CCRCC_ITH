@@ -160,6 +160,9 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
     if pdmd == 'immune':
         pos_score = ['im1_score', 'im2_score', 'im3_score', 'im4_score']
         pos_ls = ['im1', 'im2', 'im3', 'im4']
+    elif pdmd == 'methylation':
+        pos_score = ['me1_score', 'me2_score', 'me3_score']
+        pos_ls = ['me1', 'me2', 'me3']
     else:
         pos_score = ["POS_score", "NEG_score"]
         pos_ls = [pdmd, 'negative']
