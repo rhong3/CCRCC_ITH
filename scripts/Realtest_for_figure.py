@@ -237,17 +237,17 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
         for index, row in joined_dict.iterrows():
             opt[int(row["X_pos"]), int(row["Y_pos"])] = 255
             if row['predict_index'] == 0:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 142
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 24
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 62
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 75
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 61
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 57
             elif row['predict_index'] == 1:
                 hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 214
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 98
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 39
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 78
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 136
             elif row['predict_index'] == 2:
-                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 245
-                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 200
-                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 112
+                hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 222
+                hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 201
+                hm_B[int(row["X_pos"]), int(row["Y_pos"])] = 186
             elif row['predict_index'] == 3:
                 hm_R[int(row["X_pos"]), int(row["Y_pos"])] = 148
                 hm_G[int(row["X_pos"]), int(row["Y_pos"])] = 159
