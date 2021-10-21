@@ -127,9 +127,9 @@ import data_input_fusion as data_input
 
 
 # load tfrecords and prepare datasets
-def tfreloader(bs, cls, ct):
+def tfreloader(bs, ct):
     filename = data_dir + '/test.tfrecords'
-    datasets = data_input.DataSet(bs, ct, ep=1, cls=cls, mode='test', filename=filename)
+    datasets = data_input.DataSet(bs, ct, ep=1, mode='test', filename=filename)
 
     return datasets
 
@@ -204,7 +204,7 @@ def main(imgfile, bs, cls, modeltoload, pdmd, md, img_dir, data_dir, out_dir, LO
                           model=md)
 
         print("Loaded! Ready for test!")
-        HE = tfreloader(bs, cls, None)
+        HE = tfreloader(bs, None)
         m.inference(HE, str(imgfile.split('.')[0]), realtest=True, pmd=pdmd, prefix=md+'_Test')
     if not os.path.isfile(out_dir + '/'+md+'_Overlay.png'):
         slist = pd.read_csv(data_dir + '/te_sample.csv', header=0)
